@@ -6,7 +6,7 @@ const ProtectedRoute = ({ component: Component, requiredPermissions, ...rest }) 
   const { user, userRole } = useAuth();
 
   const hasRequiredPermissions = () => {
-    if (!requiredPermissions || !userRole) return false;
+    if (!requiredPermissions || !userRole?.permissions) return false;
     return requiredPermissions.every(permission => 
       userRole.permissions.includes(permission)
     );
@@ -17,16 +17,13 @@ const ProtectedRoute = ({ component: Component, requiredPermissions, ...rest }) 
       {...rest}
       render={(props) => {
         if (!user) {
-          // Not logged in, redirect to login page
           return <Redirect to="/login" />;
         }
 
         if (!hasRequiredPermissions()) {
-          // User's role is not authorized, redirect to home page
           return <Redirect to="/404" />;
         }
 
-        // Authorized, render component
         return <Component {...props} />;
       }}
     />

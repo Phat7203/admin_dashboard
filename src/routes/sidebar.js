@@ -7,54 +7,63 @@
  */
 const routes = [
   {
-    path: "/app/dashboard", // the url
-    icon: "HomeIcon", // the component being exported from icons/index.js
-    name: "Dashboard", // name that appear in Sidebar
+    path: '/app/dashboard',
+    icon: 'HomeIcon',
+    name: 'Dashboard',
   },
+  
+  // Admin App Menu Items
   {
-    path: "/app/orders",
-    icon: "CartIcon",
-    name: "Orders",
-  },
-  {
-    icon: "TruckIcon",
-    name: "Products",
+    icon: 'CategoryIcon',
+    name: 'Categories',
     routes: [
       {
-        path: "/app/all-products",
-        name: "All Products",
+        path: '/app/sub-categories',
+        name: 'Sub Categories',
       },
       {
-        path: "/app/add-product",
-        name: "Add Product",
+        path: '/app/global-categories',
+        name: 'Global Categories',
       },
     ],
   },
   {
-    path: "/app/customers",
-    icon: "GroupIcon",
-    name: "Customers",
+    path: '/app/promotions',
+    icon: 'PromotionIcon',
+    name: 'Promotions',
   },
   {
-    path: "/app/chats",
-    icon: "ChatIcon",
-    name: "Chats",
+    path: '/app/ranks',
+    icon: 'RankIcon',
+    name: 'Ranks',
   },
   {
-    path: "/app/manage-profile",
-    icon: "UserIcon",
-    name: "Profile",
+    path: '/app/roles',
+    icon: 'RoleIcon',
+    name: 'Roles',
   },
   {
-    path: "/app/settings",
-    icon: "OutlineCogIcon",
-    name: "Settings",
+    path: '/app/stores',
+    icon: 'StoreIcon',
+    name: 'Stores',
+  },
+
+  // Admin Shop Menu Items
+  {
+    path: '/app/store-promotions',
+    icon: 'PromotionIcon',
+    name: 'Store Promotions',
   },
   {
-    path: "/app/logout",
-    icon: "OutlineLogoutIcon",
-    name: "Logout",
+    path: '/app/categories',
+    icon: 'CategoryIcon',
+    name: 'Categories',
   },
+  {
+    path: '/app/products',
+    icon: 'ProductIcon',
+    name: 'Products',
+  }
 ];
 
 export default routes;

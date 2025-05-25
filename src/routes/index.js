@@ -2,17 +2,15 @@ import { lazy } from "react";
 
 // use lazy for better code splitting, a.k.a. load faster
 const Dashboard = lazy(() => import("../pages/Dashboard"));
-const Orders = lazy(() => import("../pages/Orders"));
-const ProductsAll = lazy(() => import("../pages/ProductsAll"));
-const SingleProduct = lazy(() => import("../pages/SingleProduct"));
-const AddProduct = lazy(() => import("../pages/AddProduct"));
-const Customers = lazy(() => import("../pages/Customers"));
-const Chats = lazy(() => import("../pages/Chats"));
-const Profile = lazy(() => import("../pages/Profile"));
-const Settings = lazy(() => import("../pages/Settings"));
-const Page404 = lazy(() => import("../pages/404"));
-const Blank = lazy(() => import("../pages/Blank"));
-const ManageUsers = lazy(() => import("../pages/ManageUsers"));
+const SubCategory = lazy(() => import("../pages/SubCategory"));
+const GlobalCategory = lazy(() => import("../pages/GlobalCategory"));
+const Promotion = lazy(() => import("../pages/Promotion"));
+const Rank = lazy(() => import("../pages/Rank"));
+const Role = lazy(() => import("../pages/Role"));
+const Store = lazy(() => import("../pages/Store"));
+const StorePromotion = lazy(() => import("../pages/StorePromotion"));
+const Category = lazy(() => import("../pages/Category"));
+const Products = lazy(() => import("../pages/Products"));
 
 /**
  * ⚠ These are internal routes!
@@ -28,55 +26,53 @@ const routes = [
   {
     path: "/dashboard", // the url
     component: Dashboard,
-    requiredPermissions: ['view_dashboard']
+    requiredPermissions: ['manage_store']
   },
   {
-    path: "/orders",
-    component: Orders,
-    requiredPermissions: ['manage_orders']
+    path: "/sub-categories",
+    component: SubCategory,
+    requiredPermissions: ['manage_subCategory']
   },
   {
-    path: "/all-products",
-    component: ProductsAll,
-    requiredPermissions: ['manage_products']
+    path: "/global-categories",
+    component: GlobalCategory,
+    requiredPermissions: ['manage_globalCategory']
   },
   {
-    path: "/add-product",
-    component: AddProduct,
+    path: "/promotions",
+    component: Promotion,
+    requiredPermissions: ['manage_promotion']
   },
   {
-    path: "/product/:id",
-    component: SingleProduct,
+    path: "/ranks",
+    component: Rank,
+    requiredPermissions: ['manage_rank']
   },
   {
-    path: "/customers",
-    component: Customers,
+    path: "/roles",
+    component: Role,
+    requiredPermissions: ['manage_role']
   },
   {
-    path: "/chats",
-    component: Chats,
+    path: "/stores",
+    component: Store,
+    requiredPermissions: ['manage_store']
   },
   {
-    path: "/manage-profile",
-    component: Profile,
+    path: "/store-promotions",
+    component: StorePromotion,
+    requiredPermissions: ['manage_storePromotion']
   },
   {
-    path: "/settings",
-    component: Settings,
+    path: "/categories",
+    component: Category,
+    requiredPermissions: ['manage_category']
   },
   {
-    path: "/404",
-    component: Page404,
-  },
-  {
-    path: "/blank",
-    component: Blank,
-  },
-  {
-    path: "/manage-users", // New route for app admin
-    component: ManageUsers,
-    requiredPermissions: ['manage_users']
-  },
+    path: "/products",
+    component: Products,
+    requiredPermissions: ['manage_product']
+  }
 ];
 
 export default routes;
