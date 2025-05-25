@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import InfoCard from "../components/Cards/InfoCard";
 import ChartCard from "../components/Chart/ChartCard";
@@ -15,8 +15,26 @@ import {
   lineLegends,
 } from "../utils/demo/chartsData";
 import OrdersTable from "../components/OrdersTable";
+import { getCurrentUserData } from "../api/UserAPI";
+import {auth} from "../firebase/firebase";
+import { use } from "react";
+
+const fecthCurrentUser = async () => {
+  const user = auth.currentUser;
+    const res =  await getCurrentUserData({userId: user.uid});
+  if (res.status === 200) {
+    console.log("User data fetched successfully:", res.data);
+  } else {
+    throw new Error("Failed to fetch user data");
+  }
+};
 
 function Dashboard() {
+  useEffect(() => {
+    fecthCurrentUser()
+      .then(() => console.log("User data fetched successfully"))
+      .catch((error) => console.error("Error fetching user data:", error));
+  }, []);
   return (
     <>
       <PageTitle>Dashboard</PageTitle>

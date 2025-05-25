@@ -12,6 +12,7 @@ const Profile = lazy(() => import("../pages/Profile"));
 const Settings = lazy(() => import("../pages/Settings"));
 const Page404 = lazy(() => import("../pages/404"));
 const Blank = lazy(() => import("../pages/Blank"));
+const ManageUsers = lazy(() => import("../pages/ManageUsers"));
 
 /**
  * ⚠ These are internal routes!
@@ -27,14 +28,17 @@ const routes = [
   {
     path: "/dashboard", // the url
     component: Dashboard,
+    requiredPermissions: ['view_dashboard']
   },
   {
     path: "/orders",
     component: Orders,
+    requiredPermissions: ['manage_orders']
   },
   {
     path: "/all-products",
     component: ProductsAll,
+    requiredPermissions: ['manage_products']
   },
   {
     path: "/add-product",
@@ -67,6 +71,11 @@ const routes = [
   {
     path: "/blank",
     component: Blank,
+  },
+  {
+    path: "/manage-users", // New route for app admin
+    component: ManageUsers,
+    requiredPermissions: ['manage_users']
   },
 ];
 
