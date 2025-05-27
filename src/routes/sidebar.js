@@ -5,15 +5,13 @@
  * If you're looking to actual Router routes, go to
  * `routes/index.js`
  */
-//Chú đổi lại Icon thì cần phải thêm vào icon mới vào, do nó cần đường dẫn chính xác
 const routes = [
   {
     path: '/app/dashboard',
     icon: 'HomeIcon',
     name: 'Dashboard',
+    requiredPermissions: ['manage_store']
   },
-  
-  // Admin App Menu Items
   {
     icon: 'HomeIcon',
     name: 'Categories',
@@ -21,10 +19,14 @@ const routes = [
       {
         path: '/app/sub-categories',
         name: 'Sub Categories',
+        icon: 'HomeIcon',
+        requiredPermissions: ['manage_subCategory']
       },
       {
         path: '/app/global-categories',
         name: 'Global Categories',
+        icon: 'HomeIcon',
+        requiredPermissions: ['manage_globalCategory']
       },
     ],
   },
@@ -32,21 +34,25 @@ const routes = [
     path: '/app/promotions',
     icon: 'HomeIcon',
     name: 'Promotions',
+    requiredPermissions: ['manage_promotions']
   },
   {
     path: '/app/ranks',
     icon: 'HomeIcon',
     name: 'Ranks',
+    requiredPermissions: ['manage_ranks']
   },
   {
     path: '/app/roles',
-    icon: 'HomeIcon',
+    icon: 'HomeIcon', 
     name: 'Roles',
+    requiredPermissions: ['manage_roles']
   },
   {
     path: '/app/stores',
     icon: 'HomeIcon',
     name: 'Stores',
+    requiredPermissions: ['manage_stores']
   },
 
   // Admin Shop Menu Items
@@ -54,16 +60,19 @@ const routes = [
     path: '/app/store-promotions',
     icon: 'HomeIcon',
     name: 'Store Promotions',
+    requiredPermissions: ['manage_store_promotions']
   },
   {
     path: '/app/categories',
     icon: 'HomeIcon',
     name: 'Categories',
+    requiredPermissions: ['manage_categories']
   },
   {
     path: '/app/products',
     icon: 'HomeIcon',
     name: 'Products',
+    requiredPermissions: ['manage_products']
   }
 ];
 
