@@ -7,54 +7,73 @@
  */
 const routes = [
   {
-    path: "/app/dashboard", // the url
-    icon: "HomeIcon", // the component being exported from icons/index.js
-    name: "Dashboard", // name that appear in Sidebar
+    path: '/app/dashboard',
+    icon: 'HomeIcon',
+    name: 'Dashboard',
+    requiredPermissions: ['manage_store']
   },
   {
-    path: "/app/orders",
-    icon: "CartIcon",
-    name: "Orders",
-  },
-  {
-    icon: "TruckIcon",
-    name: "Products",
+    icon: 'HomeIcon',
+    name: 'Categories',
     routes: [
       {
-        path: "/app/all-products",
-        name: "All Products",
+        path: '/app/sub-categories',
+        name: 'Sub Categories',
+        icon: 'HomeIcon',
+        requiredPermissions: ['manage_subCategory']
       },
       {
-        path: "/app/add-product",
-        name: "Add Product",
+        path: '/app/global-categories',
+        name: 'Global Categories',
+        icon: 'HomeIcon',
+        requiredPermissions: ['manage_globalCategory']
       },
     ],
   },
   {
-    path: "/app/customers",
-    icon: "GroupIcon",
-    name: "Customers",
+    path: '/app/promotions',
+    icon: 'HomeIcon',
+    name: 'Promotions',
+    requiredPermissions: ['manage_promotions']
   },
   {
-    path: "/app/chats",
-    icon: "ChatIcon",
-    name: "Chats",
+    path: '/app/ranks',
+    icon: 'HomeIcon',
+    name: 'Ranks',
+    requiredPermissions: ['manage_ranks']
   },
   {
-    path: "/app/manage-profile",
-    icon: "UserIcon",
-    name: "Profile",
+    path: '/app/roles',
+    icon: 'HomeIcon', 
+    name: 'Roles',
+    requiredPermissions: ['manage_roles']
   },
   {
-    path: "/app/settings",
-    icon: "OutlineCogIcon",
-    name: "Settings",
+    path: '/app/stores',
+    icon: 'HomeIcon',
+    name: 'Stores',
+    requiredPermissions: ['manage_stores']
+  },
+
+  // Admin Shop Menu Items
+  {
+    path: '/app/store-promotions',
+    icon: 'HomeIcon',
+    name: 'Store Promotions',
+    requiredPermissions: ['manage_store_promotions']
   },
   {
-    path: "/app/logout",
-    icon: "OutlineLogoutIcon",
-    name: "Logout",
+    path: '/app/categories',
+    icon: 'HomeIcon',
+    name: 'Categories',
+    requiredPermissions: ['manage_categories']
   },
+  {
+    path: '/app/products',
+    icon: 'HomeIcon',
+    name: 'Products',
+    requiredPermissions: ['manage_products']
+  }
 ];
 
 export default routes;

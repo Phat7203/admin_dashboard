@@ -20,6 +20,7 @@ import {
 } from "@windmill/react-ui";
 import { Link } from "react-router-dom";
 import response from "../utils/demo/profileData";
+import { getAuth } from "firebase/auth";
 
 function Header() {
   const { mode, toggleMode } = useContext(WindmillContext);
@@ -35,6 +36,16 @@ function Header() {
   function handleProfileClick() {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   }
+
+  const handleLogout = async () => {
+    const auth = getAuth();
+    try {
+      await auth.signOut();
+      // AuthContext will handle the rest
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   return (
     <header className="z-40 py-4 bg-white shadow-bottom dark:bg-gray-800">
@@ -148,7 +159,7 @@ function Header() {
                 <OutlineCogIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                 <span>Settings</span>
               </DropdownItem>
-              <DropdownItem onClick={() => alert("Log out!")}>
+              <DropdownItem onClick={handleLogout}>
                 <OutlineLogoutIcon
                   className="w-4 h-4 mr-3"
                   aria-hidden="true"

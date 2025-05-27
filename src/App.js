@@ -6,6 +6,7 @@ import {
   Redirect,
 } from "react-router-dom";
 import AccessibleNavigationAnnouncer from "./components/AccessibleNavigationAnnouncer";
+import { AuthProvider } from "./context/AuthContext";
 
 const Layout = lazy(() => import("./containers/Layout"));
 const Login = lazy(() => import("./pages/Login"));
@@ -14,7 +15,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Router>
         <AccessibleNavigationAnnouncer />
         <Switch>
@@ -22,13 +23,12 @@ function App() {
           <Route path="/create-account" component={CreateAccount} />
           <Route path="/forgot-password" component={ForgotPassword} />
 
-          {/* Place new routes over this */}
-          <Route path="/app" component={Layout} />
-          {/* If you have an index page, you can remothis Redirect */}
+          <Route path="/app" component={Layout}/>
+          
           <Redirect exact from="/" to="/login" />
         </Switch>
       </Router>
-    </>
+    </AuthProvider>
   );
 }
 
