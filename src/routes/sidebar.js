@@ -5,6 +5,7 @@
  * If you're looking to actual Router routes, go to
  * `routes/index.js`
  */
+//Chú đổi lại Icon thì cần phải thêm vào icon mới vào, do nó cần đường dẫn chính xác
 const routes = [
   {
     path: '/app/dashboard',
@@ -14,7 +15,7 @@ const routes = [
   
   // Admin App Menu Items
   {
-    icon: 'CategoryIcon',
+    icon: 'HomeIcon',
     name: 'Categories',
     routes: [
       {
@@ -29,39 +30,39 @@ const routes = [
   },
   {
     path: '/app/promotions',
-    icon: 'PromotionIcon',
+    icon: 'HomeIcon',
     name: 'Promotions',
   },
   {
     path: '/app/ranks',
-    icon: 'RankIcon',
+    icon: 'HomeIcon',
     name: 'Ranks',
   },
   {
     path: '/app/roles',
-    icon: 'RoleIcon',
+    icon: 'HomeIcon',
     name: 'Roles',
   },
   {
     path: '/app/stores',
-    icon: 'StoreIcon',
+    icon: 'HomeIcon',
     name: 'Stores',
   },
 
   // Admin Shop Menu Items
   {
     path: '/app/store-promotions',
-    icon: 'PromotionIcon',
+    icon: 'HomeIcon',
     name: 'Store Promotions',
   },
   {
     path: '/app/categories',
-    icon: 'CategoryIcon',
+    icon: 'HomeIcon',
     name: 'Categories',
   },
   {
     path: '/app/products',
-    icon: 'ProductIcon',
+    icon: 'HomeIcon',
     name: 'Products',
   }
 ];

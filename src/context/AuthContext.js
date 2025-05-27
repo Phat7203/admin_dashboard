@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { auth } from '../firebase/firebase';
 import { getCurrentUserData } from '../api/UserAPI';
-import { getRoleById } from '../api/RoleAPI'; // Assuming you have a function to fetch role by ID
+import { getRoleById } from '../api/RoleAPI';
 
 const AuthContext = createContext(null);
 
@@ -9,15 +9,22 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  
   useEffect(() => {
+    let mounted = true;
+
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (!mounted) return;
+
       if (firebaseUser) {
         try {
           const userData = await getCurrentUserData({ userId: firebaseUser.uid });
+          if (!mounted) return;
+
           if (userData.status === 200) {
-            // Fetch role data using roleId
             const roleData = await getRoleById({roleId: userData.data.userType});
+            if (!mounted) return;
+
             if (roleData.status === 200) {
               setUserRole(roleData.data);
               setUser({
@@ -30,13 +37,21 @@ export const AuthProvider = ({ children }) => {
           console.error('Error fetching user data:', error);
         }
       } else {
-        setUser(null);
-        setUserRole(null);
+        if (mounted) {
+          setUser(null);
+          setUserRole(null);
+        }
       }
-      setLoading(false);
+      if (mounted) {
+        setLoading(false);
+      }
     });
 
-    return unsubscribe;
+    // Cleanup function
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   return (
