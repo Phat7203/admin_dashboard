@@ -1,6 +1,6 @@
 const adminAppSidebarRoutes = [
   {
-    path: '/app/dashboard-app',
+    path: '/app/dashboard',
     icon: 'HomeIcon',
     name: 'Dashboard'
   },

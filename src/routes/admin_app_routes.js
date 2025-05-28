@@ -27,7 +27,7 @@ const adminAppRoutes = [
     icon: 'HomeIcon'
   },
   {
-    path: "/promotions",
+    path: "/promotions-app",
     component: Promotion,
     name: 'Promotions',
     icon: 'HomeIcon'
@@ -45,7 +45,7 @@ const adminAppRoutes = [
     icon: 'HomeIcon'
   },
   {
-    path: "/stores",
+    path: "/stores-app",
     component: Store,
     name: 'Stores',
     icon: 'HomeIcon'
