@@ -20,14 +20,14 @@ import {
 } from "@windmill/react-ui";
 import { Link } from "react-router-dom";
 import response from "../utils/demo/profileData";
-import { getAuth } from "firebase/auth";
-
+import {useAuth} from "../context/AuthContext"
 function Header() {
   const { mode, toggleMode } = useContext(WindmillContext);
   const { toggleSidebar } = useContext(SidebarContext);
 
   const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const { logout } = useAuth();
 
   function handleNotificationsClick() {
     setIsNotificationsMenuOpen(!isNotificationsMenuOpen);
@@ -37,14 +37,8 @@ function Header() {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   }
 
-  const handleLogout = async () => {
-    const auth = getAuth();
-    try {
-      await auth.signOut();
-      // AuthContext will handle the rest
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
+  const handleLogout = () => {
+    logout();
   };
 
   return (
