@@ -60,7 +60,7 @@ function Layout() {
                     isAdminApp={false}
                   />
                 ))}
-              <Redirect exact from="/app" to="/app/dashboard" />
+               {isAdminApp ? (<Redirect exact from="/app" to="/app/dashboard" />) : (<Redirect exact from="/app" to="/app/dashboard-shop"/>)}
               <Route component={Page404} />
             </Switch>
           </Suspense>

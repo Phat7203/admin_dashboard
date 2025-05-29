@@ -18,10 +18,7 @@ function Login() {
     e.preventDefault()
     const auth = getAuth()
     try {
-      await signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        console.log("User signed in:", user);
+      await signInWithEmailAndPassword(auth, email, password).then(() => {
         history.push('/app')
       })
     } catch (err) {

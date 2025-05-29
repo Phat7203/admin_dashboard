@@ -23,7 +23,6 @@ const fecthCurrentUser = async () => {
   const user = auth.currentUser;
     const res =  await getCurrentUserData({userId: user.uid});
   if (res.status === 200) {
-    console.log("User data fetched successfully:", res.data);
   } else {
     throw new Error("Failed to fetch user data");
   }

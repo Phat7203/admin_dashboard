@@ -1,9 +1,15 @@
-import React from 'react';
-import { Route, Redirect } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { Route, Redirect } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import ThemedSuspense from "./ThemedSuspense";
 
-const ProtectedRoute = ({ component: Component, requiredPermissions, isAdminApp = false, ...rest }) => {
-  const { user, userRole } = useAuth();
+const ProtectedRoute = ({
+  component: Component,
+  requiredPermissions,
+  isAdminApp = false,
+  ...rest
+}) => {
+  const { user, userRole, loading } = useAuth();
 
   const hasRequiredPermissions = () => {
     // Nếu là admin app thì không cần check quyền
@@ -20,6 +26,10 @@ const ProtectedRoute = ({ component: Component, requiredPermissions, isAdminApp 
     <Route
       {...rest}
       render={(props) => {
+        if (loading || !userRole) {
+          return  <ThemedSuspense />;
+        }
+
         if (!user) {
           return <Redirect to="/login" />;
         }
