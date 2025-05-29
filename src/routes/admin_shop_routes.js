@@ -8,7 +8,7 @@ const Products = lazy(() => import("../pages/Products"));
 
 const adminShopRoutes = [
   {
-    path: "/dashboard",
+    path: "/dashboard-shop",
     component: Dashboard,
     name: "Dashboard",
     icon: "HomeIcon",
