@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import firebase from 'firebase/compat/app';
+import { getStorage } from 'firebase/storage';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 const firebaseConfig = {
@@ -25,3 +26,5 @@ if (user) {
   console.log("User is signed in:", user);
 }
 export { auth };
+
+export const Storage = getStorage(app);
