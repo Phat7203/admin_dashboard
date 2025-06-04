@@ -12,6 +12,7 @@
     "classnames": "2.2.6",
     "faker": "4.1.0",
     "firebase": "^11.8.0",
+    "lucide-react": "^0.511.0",
     "react": "^16.13.1",
     "react-chartjs-2": "2.9.0",
     "react-dom": "^16.13.1",

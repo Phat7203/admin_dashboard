@@ -23,7 +23,7 @@ const registerUser = async({data}) => {
 const getUserType = async({userId}) => {
     try{
         const idToken = await getIdToken();
-        const url = `/user/userId=${userId}`;
+        const url = `/user/${userId}`;
         const config = {
           method: "GET",
           headers: {
@@ -44,7 +44,7 @@ const getUserType = async({userId}) => {
 const updateUser = async({userId, data}) => {
   try {
       const idToken = await getIdToken();
-      const url = `/user/userId=${userId}`;
+      const url = `/user/${userId}`;
       const config = {
           method: "PUT",
           headers: {
@@ -67,7 +67,7 @@ const updateUser = async({userId, data}) => {
 const deleteUser = async({userId}) => {
   try {
       const idToken = await getIdToken();
-      const url = `/user/userId=${userId}`;
+      const url = `/user/${userId}`;
       const config = {
           method: "DELETE",
           headers: {

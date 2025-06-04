@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import Icon from "../components/Icon";
 import PageTitle from "../components/Typography/PageTitle";
@@ -6,17 +6,32 @@ import { HomeIcon } from "../icons";
 import response from "../utils/demo/productData";
 import { Card, CardBody, Badge, Button, Avatar } from "@windmill/react-ui";
 import { genRating } from "../utils/genarateRating";
+import { getProductById } from "../api/ProductApi";
 
 const SingleProduct = () => {
   const { id } = useParams();
 
   // change view component
   const [tabView, setTabView] = useState("reviews");
+  const [product, setProduct] = useState(response);
   const handleTabView = (viewName) => setTabView(viewName);
 
   //   get product
-  let product = response.filter((product) => product.id == id)[0];
-
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await getProductById({id: id});
+        if (res.status === 200) {
+          setProduct(res.data);
+        } else {
+          console.error("Failed to fetch product:", res);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
+    };
+    fetchProduct();
+  }, [id]);
   return (
     <div>
       <PageTitle>Product Details</PageTitle>
@@ -34,7 +49,7 @@ const SingleProduct = () => {
           All Products
         </NavLink>
         {">"}
-        <p className="mx-2">{product.name}</p>
+        <p className="mx-2">{product.productName}</p>
       </div>
 
       {/* Product overview  */}
@@ -42,16 +57,16 @@ const SingleProduct = () => {
         <CardBody>
           <div className="grid grid-col items-center md:grid-cols-2 lg:grid-cols-2">
             <div>
-              <img src={product?.photo} alt="" className="w-full rounded-lg" />
+              <img src={product?.productImages} alt="" className="w-full rounded-lg" />
             </div>
 
             <div className="mx-8 pt-5 md:pt-0">
               <h1 className="text-3xl mb-4 font-semibold text-gray-700 dark:text-gray-200">
-                {product?.name}
+                {product?.productName}
               </h1>
 
               <Badge
-                type={product?.qty > 0 ? "success" : "danger"}
+                type={product?.soldQuantity > 0 ? "success" : "danger"}
                 className="mb-2"
               >
                 <p className="break-normal">
@@ -60,22 +75,22 @@ const SingleProduct = () => {
               </Badge>
 
               <p className="mb-2 text-sm text-gray-800 dark:text-gray-300">
-                {product?.shortDescription}
+                {product?.description}
               </p>
               <p className="mb-3 text-sm text-gray-800 dark:text-gray-300">
-                {product?.featureDescription}
+                {product?.description}
               </p>
 
               <p className="text-sm text-gray-900 dark:text-gray-400">
                 Product Rating
               </p>
-              <div>{genRating(product.rating, product.reviews.length, 6)}</div>
+              <div>{genRating(product.rating, product.reviewCount, 6)}</div>
 
               <h4 className="mt-4 text-purple-600 text-2xl font-semibold">
-                {product?.price}
+                {product?.basePrice}
               </h4>
               <p className="text-sm text-gray-900 dark:text-gray-400">
-                Product Quantity : {product?.qty}
+                Product Quantity : {product?.soldQuantity}
               </p>
             </div>
           </div>
@@ -91,7 +106,7 @@ const SingleProduct = () => {
               className="mx-5"
               layout="link"
               onClick={() => handleTabView("reviews")}
-            >{`Reviews (${product.reviews.length})`}</Button>
+            >{`Reviews (${product.reviewCount})`}</Button>
             <Button layout="link" onClick={() => handleTabView("description")}>
               Description
             </Button>
@@ -108,11 +123,11 @@ const SingleProduct = () => {
             {tabView === "reviews" ? (
               <>
                 <p className="text-5xl text-gray-700 dark:text-gray-200">
-                  {product.rating.toFixed(1)}
+                  {product.rating}
                 </p>
-                {genRating(product.rating, product.reviews.length, 6)}
+                {genRating(product.rating, product.reviewCount, 6)}
 
-                <div className="mt-4">
+                {/* <div className="mt-4">
                   {product.reviews.map((review, i) => (
                     <div className="flex py-3" key={i}>
                       <Avatar
@@ -132,13 +147,13 @@ const SingleProduct = () => {
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
               </>
             ) : tabView === "description" ? (
               <>
                 <div className="px-3">
                   <p className="text-sm text-gray-800 dark:text-gray-300">
-                    {product.londDescription}
+                    {product.description}
                   </p>
                 </div>
               </>
