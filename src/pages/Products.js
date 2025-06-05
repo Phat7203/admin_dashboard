@@ -117,7 +117,7 @@ const Products = () => {
       <div className="flex text-gray-800 dark:text-gray-300">
         <div className="flex items-center text-purple-600">
           <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
-          <NavLink exact to="/app/dashboard" className="mx-2">
+          <NavLink exact to="/app/dashboard-shop" className="mx-2">
             Dashboard
           </NavLink>
         </div>
@@ -210,7 +210,10 @@ const Products = () => {
               Cancel
             </Button>
           </div>
-          <div className="block w-full sm:hidden" onClick={deleteProductHandler}>
+          <div
+            className="block w-full sm:hidden"
+            onClick={deleteProductHandler}
+          >
             <Button block size="large">
               Delete
             </Button>
@@ -266,19 +269,21 @@ const Products = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex">
-                        <Link to={`/app/product/${product._id}`}>
+                        <Link to={`/app/products/${product._id}`}>
                           <Button
                             icon={EyeIcon}
                             className="mr-3"
                             aria-label="Preview"
                           />
                         </Link>
-                        <Button
-                          icon={EditIcon}
-                          className="mr-3"
-                          layout="outline"
-                          aria-label="Edit"
-                        />
+                        <Link to={`/app/edit-product/${product._id}`}>
+                          <Button
+                            icon={EditIcon}
+                            className="mr-3"
+                            layout="outline"
+                            aria-label="Edit"
+                          />
+                        </Link>
                         <Button
                           icon={TrashIcon}
                           layout="outline"
@@ -352,13 +357,15 @@ const Products = () => {
                         </Link>
                       </div>
                       <div>
-                        <Button
-                          icon={EditIcon}
-                          className="mr-3"
-                          layout="outline"
-                          aria-label="Edit"
-                          size="small"
-                        />
+                        <Link to={`/app/edit-product/${product._id}`}>
+                          <Button
+                            icon={EditIcon}
+                            className="mr-3"
+                            layout="outline"
+                            aria-label="Edit"
+                            size="small"
+                          />
+                        </Link>
                         <Button
                           icon={TrashIcon}
                           layout="outline"

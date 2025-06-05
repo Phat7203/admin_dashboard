@@ -45,7 +45,7 @@ const SingleProduct = () => {
           </NavLink>
         </div>
         {">"}
-        <NavLink exact to="/app/all-products" className="mx-2 text-purple-600">
+        <NavLink exact to="/app/products" className="mx-2 text-purple-600">
           All Products
         </NavLink>
         {">"}
