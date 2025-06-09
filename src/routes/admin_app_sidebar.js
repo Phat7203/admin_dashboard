@@ -2,43 +2,38 @@ const adminAppSidebarRoutes = [
   {
     path: '/app/dashboard',
     icon: 'HomeIcon',
-    name: 'Dashboard'
+    name: 'Tổng quan'
   },
   {
-    icon: 'HomeIcon',
-    name: 'Categories',
+    icon: 'MenuIcon',
+    name: 'Danh mục',
     routes: [
       {
         path: '/app/sub-categories',
-        name: 'Sub Categories',
+        name: 'Danh mục cấp 2',
         icon: 'HomeIcon'
       },
       {
         path: '/app/global-categories',
-        name: 'Global Categories',
+        name: 'Danh mục cấp 1',
         icon: 'HomeIcon'
       },
     ],
   },
   {
     path: '/app/promotions-app',
-    icon: 'HomeIcon',
-    name: 'System Promotions'
+    icon: 'MoneyIcon',
+    name: 'Chương trình khuyến mãi'
   },
   {
     path: '/app/ranks',
-    icon: 'HomeIcon',
-    name: 'Ranks'
-  },
-  {
-    path: '/app/roles',
-    icon: 'HomeIcon', 
-    name: 'Roles'
+    icon: 'GroupIcon',
+    name: 'Xếp hạng thành viên'
   },
   {
     path: '/app/stores-app',
-    icon: 'HomeIcon',
-    name: 'Stores Management'
+    icon: 'StoreIcon',
+    name: 'Quản lý cửa hàng'
   }
 ];
 export default adminAppSidebarRoutes;

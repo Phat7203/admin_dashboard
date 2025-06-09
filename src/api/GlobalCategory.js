@@ -1,33 +1,32 @@
 import { getIdToken } from "../midleware/getToken";
 import { api } from './AppApi';
 
-const getAllStores = async () => {
+const getGlobalCategory = async() => {
     try {
         const idToken = await getIdToken();
-        const url = "/store/getStores";
+        const url = `/globalCategory`;
         const config = {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${idToken}`
             },
-        };
-
+        }
         const res = await api(url, config);
         return res;
     } catch (error) {
         if (error.response) {
-            return error.response.data;
+            return error.response;
         } else {
             throw error;
         }
     }
-};
+}
 
-const addStore = async (data) => {
+const addGlobalCategory = async(data) => {
     try {
         const idToken = await getIdToken();
-        const url = "/store/addStore";
+        const url = `/globalCategory`;
         const config = {
             method: "POST",
             headers: {
@@ -35,23 +34,22 @@ const addStore = async (data) => {
                 Authorization: `Bearer ${idToken}`
             },
             data: data,
-        };
-
+        }
         const res = await api(url, config);
         return res;
     } catch (error) {
         if (error.response) {
-            return error.response.data;
+            return error.response;
         } else {
             throw error;
         }
     }
-};
+}
 
-const updateStore = async ({ id, data }) => {
+const updateGlobalCategory = async(id ,data) => {
     try {
         const idToken = await getIdToken();
-        const url = `/store/updateStore/${id}`;
+        const url = `/globalCategory/${id}`;
         const config = {
             method: "PUT",
             headers: {
@@ -59,65 +57,43 @@ const updateStore = async ({ id, data }) => {
                 Authorization: `Bearer ${idToken}`
             },
             data: data,
-        };
-
+        }
         const res = await api(url, config);
         return res;
     } catch (error) {
         if (error.response) {
-            return error.response.data;
+            return error.response;
         } else {
             throw error;
         }
     }
-};
+}
 
-const deleteStore = async ( id ) => {
-    try {
+const deleteGlobalCategory = async(id) => {
+    try{
         const idToken = await getIdToken();
-        const url = `/store/deleteStore/${id}`;
+        const url = `/globalCategory/${id}`;
         const config = {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${idToken}`
             },
-        };
-
+        }
         const res = await api(url, config);
         return res;
     } catch (error) {
         if (error.response) {
-            return error.response.data;
+            return error.response;
         } else {
             throw error;
         }
     }
-};
+}
 
-const approveStore = async ( id ) => {
-    try {
-        const idToken = await getIdToken();
-        const url = `/store/approveStore/${id}`;
-        const config = {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`
-            },
-        };
-
-        const res = await api(url, config);
-        return res;
-    } catch (error) {
-        if (error.response) {
-            return error.response.data;
-        } else {
-            throw error;
-        }
-    }
-};
-
-export { getAllStores, addStore, updateStore, deleteStore, approveStore };
-
-
+export{
+    getGlobalCategory,
+    addGlobalCategory,
+    updateGlobalCategory,
+    deleteGlobalCategory
+}

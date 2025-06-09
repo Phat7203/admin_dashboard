@@ -11,44 +11,38 @@ const adminAppRoutes = [
   {
     path: "/dashboard",
     component: Dashboard,
-    name: 'Dashboard',
+    name: 'Tổng quan',
     icon: 'HomeIcon'
   },
   {
     path: "/sub-categories", 
     component: SubCategory,
-    name: 'Sub Categories',
+    name: 'Danh mục cấp 2',
     icon: 'HomeIcon'
   },
   {
     path: "/global-categories",
     component: GlobalCategory,
-    name: 'Global Categories', 
+    name: 'Danh mục cấp 1', 
     icon: 'HomeIcon'
   },
   {
     path: "/promotions-app",
     component: Promotion,
-    name: 'Promotions',
+    name: 'Chương trình khuyến mãi',
     icon: 'HomeIcon'
   },
   {
     path: "/ranks",
     component: Rank,
-    name: 'Ranks',
-    icon: 'HomeIcon'
-  },
-  {
-    path: "/roles",
-    component: Role,
-    name: 'Roles',
+    name: 'Xếp hạng thành viên',
     icon: 'HomeIcon'
   },
   {
     path: "/stores-app",
     component: Store,
-    name: 'Stores',
-    icon: 'HomeIcon'
+    name: 'Cửa hàng',
+    icon: 'StoreIcon'
   }
 ];
 
