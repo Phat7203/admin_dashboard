@@ -50,6 +50,7 @@ const Products = () => {
   // Filter states
   const [sortBy, setSortBy] = useState(""); // "bestselling", "newest", ""
   const [filterCategory, setFilterCategory] = useState(""); // categoryId hoặc ""
+  const [activeTab, setActiveTab] = useState("all"); // "all", "available", "outofstock", "onwait"
 
   // pagination setup
   const [resultsPerPage, setResultsPerPage] = useState(10);
@@ -98,6 +99,13 @@ const Products = () => {
   const applyFiltersAndSort = () => {
     let filteredProducts = [...allProducts];
 
+    // Filter by status tab
+    if (activeTab !== "all") {
+      filteredProducts = filteredProducts.filter(
+        product => product.status === activeTab
+      );
+    }
+
     // Filter by category
     if (filterCategory) {
       filteredProducts = filteredProducts.filter(
@@ -144,12 +152,12 @@ const Products = () => {
     if (allProducts.length > 0) {
       applyFiltersAndSort();
     }
-  }, [allProducts, sortBy, filterCategory, page, resultsPerPage]);
+  }, [allProducts, sortBy, filterCategory, activeTab, page, resultsPerPage]);
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [sortBy, filterCategory]);
+  }, [sortBy, filterCategory, activeTab]);
 
   // Delete action modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -207,6 +215,38 @@ const Products = () => {
     setPage(1); // Reset to first page
   };
 
+  // Handle tab change
+  const handleTabChange = (tabValue) => {
+    setActiveTab(tabValue);
+  };
+
+  // Get counts for each tab
+  const getTabCounts = () => {
+    const counts = {
+      all: allProducts.length,
+      available: allProducts.filter(p => p.status === 'available').length,
+      outofstock: allProducts.filter(p => p.status === 'outofstock').length,
+      onwait: allProducts.filter(p => p.status === 'onwait').length,
+    };
+    return counts;
+  };
+
+  const tabCounts = getTabCounts();
+
+  // Get status display info
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case 'available':
+        return { text: 'Available', type: 'success' };
+      case 'outofstock':
+        return { text: 'Out of Stock', type: 'danger' };
+      case 'onwait':
+        return { text: 'Pending', type: 'warning' };
+      default:
+        return { text: status, type: 'neutral' };
+    }
+  };
+
   return (
     <div>
       <PageTitle>All Products</PageTitle>
@@ -223,13 +263,84 @@ const Products = () => {
         <p className="mx-2">All Products</p>
       </div>
 
+      {/* Status Tabs */}
+      <Card className="mt-5 mb-5 shadow-md">
+        <CardBody>
+          <div className="flex border-b border-gray-200 dark:border-gray-600 overflow-x-auto">
+            <button
+              className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "all"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+              onClick={() => handleTabChange("all")}
+            >
+              <div className="flex items-center gap-2">
+                <span>All Products</span>
+                <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
+                  {tabCounts.all}
+                </span>
+              </div>
+            </button>
+            <button
+              className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "available"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+              onClick={() => handleTabChange("available")}
+            >
+              <div className="flex items-center gap-2">
+                <span>Available</span>
+                <span className="bg-green-200 dark:bg-green-600 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs">
+                  {tabCounts.available}
+                </span>
+              </div>
+            </button>
+            <button
+              className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "outofstock"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+              onClick={() => handleTabChange("outofstock")}
+            >
+              <div className="flex items-center gap-2">
+                <span>Out of Stock</span>
+                <span className="bg-red-200 dark:bg-red-600 text-red-700 dark:text-red-300 px-2 py-1 rounded-full text-xs">
+                  {tabCounts.outofstock}
+                </span>
+              </div>
+            </button>
+            <button
+              className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "onwait"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+              onClick={() => handleTabChange("onwait")}
+            >
+              <div className="flex items-center gap-2">
+                <span>Pending Approval</span>
+                <span className="bg-yellow-200 dark:bg-yellow-600 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded-full text-xs">
+                  {tabCounts.onwait}
+                </span>
+              </div>
+            </button>
+          </div>
+        </CardBody>
+      </Card>
+
       {/* Sort and Filter */}
       <Card className="mt-5 mb-5 shadow-md">
         <CardBody>
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-wrap gap-3">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                All Products ({totalResults} results)
+                {activeTab === "all" ? "All Products" : 
+                 activeTab === "available" ? "Available Products" :
+                 activeTab === "outofstock" ? "Out of Stock Products" :
+                 "Pending Approval Products"} ({totalResults} results)
               </p>
 
               {/* Sort Dropdown */}
@@ -335,7 +446,7 @@ const Products = () => {
               <TableHeader>
                 <tr>
                   <TableCell>Name</TableCell>
-                  <TableCell>Stock</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell>Rating</TableCell>
                   <TableCell>Sold</TableCell>
                   <TableCell>Price</TableCell>
@@ -343,63 +454,64 @@ const Products = () => {
                 </tr>
               </TableHeader>
               <TableBody>
-                {data.map((product) => (
-                  <TableRow key={product._id}>
-                    <TableCell>
-                      <div className="flex items-center text-sm">
-                        <Avatar
-                          className="hidden mr-4 md:block"
-                          src={product.productImages[0]}
-                          alt="Product image"
-                        />
-                        <div>
-                          <p className="font-semibold">{product.productName}</p>
+                {data.map((product) => {
+                  const statusInfo = getStatusInfo(product.status);
+                  return (
+                    <TableRow key={product._id}>
+                      <TableCell>
+                        <div className="flex items-center text-sm">
+                          <Avatar
+                            className="hidden mr-4 md:block"
+                            src={product.productImages[0]}
+                            alt="Product image"
+                          />
+                          <div>
+                            <p className="font-semibold">{product.productName}</p>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        type={product.status === 'available' ? "success" : "danger"}
-                      >
-                        {product.status === 'available' ? "In Stock" : "Out of Stock"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {genRating(product.rating, product.reviewCount, 5)}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {product.soldQuantity || 0}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      ${product.basePrice}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex">
-                        <Link to={`/app/products/${product._id}`}>
+                      </TableCell>
+                      <TableCell>
+                        <Badge type={statusInfo.type}>
+                          {statusInfo.text}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {genRating(product.rating, product.reviewCount, 5)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {product.soldQuantity || 0}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        ${product.basePrice}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex">
+                          <Link to={`/app/products/${product._id}`}>
+                            <Button
+                              icon={EyeIcon}
+                              className="mr-3"
+                              aria-label="Preview"
+                            />
+                          </Link>
+                          <Link to={`/app/edit-product/${product._id}`}>
+                            <Button
+                              icon={EditIcon}
+                              className="mr-3"
+                              layout="outline"
+                              aria-label="Edit"
+                            />
+                          </Link>
                           <Button
-                            icon={EyeIcon}
-                            className="mr-3"
-                            aria-label="Preview"
-                          />
-                        </Link>
-                        <Link to={`/app/edit-product/${product._id}`}>
-                          <Button
-                            icon={EditIcon}
-                            className="mr-3"
+                            icon={TrashIcon}
                             layout="outline"
-                            aria-label="Edit"
+                            onClick={() => openModal(product._id)}
+                            aria-label="Delete"
                           />
-                        </Link>
-                        <Button
-                          icon={TrashIcon}
-                          layout="outline"
-                          onClick={() => openModal(product._id)}
-                          aria-label="Delete"
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             <TableFooter>
@@ -416,78 +528,81 @@ const Products = () => {
         <>
           {/* Grid view */}
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-8">
-            {data.map((product) => (
-              <div className="" key={product._id}>
-                <Card>
-                  <img
-                    className="object-cover w-full h-48"
-                    src={product.productImages[0]}
-                    alt="product"
-                  />
-                  <CardBody>
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="font-semibold truncate text-gray-600 dark:text-gray-300">
-                        {product.productName}
-                      </p>
-                      <Badge
-                        type={product.status === 'available' ? "success" : "danger"}
-                        className="whitespace-nowrap"
-                      >
-                        <p className="break-normal">
-                          {product.status === 'available' ? "In Stock" : "Out of Stock"}
+            {data.map((product) => {
+              const statusInfo = getStatusInfo(product.status);
+              return (
+                <div className="" key={product._id}>
+                  <Card>
+                    <img
+                      className="object-cover w-full h-48"
+                      src={product.productImages[0]}
+                      alt="product"
+                    />
+                    <CardBody>
+                      <div className="mb-3 flex items-center justify-between">
+                        <p className="font-semibold truncate text-gray-600 dark:text-gray-300">
+                          {product.productName}
                         </p>
-                      </Badge>
-                    </div>
-
-                    <p className="mb-2 text-purple-500 font-bold text-lg">
-                      ${product.basePrice}
-                    </p>
-
-                    <div className="mb-4 text-sm text-gray-500">
-                      <p>Sold: {product.soldQuantity || 0}</p>
-                      <p>Rating: {product.rating || 0}/5</p>
-                    </div>
-
-                    <p className="mb-8 text-gray-600 dark:text-gray-400">
-                      {product.description && product.description.length > 100
-                        ? `${product.description.slice(0, 100)}...`
-                        : product.description || 'No description'}
-                    </p>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Link to={`/app/products/${product._id}`}>
-                          <Button
-                            icon={EyeIcon}
-                            className="mr-3"
-                            aria-label="Preview"
-                            size="small"
-                          />
-                        </Link>
+                        <Badge
+                          type={statusInfo.type}
+                          className="whitespace-nowrap"
+                        >
+                          <p className="break-normal">
+                            {statusInfo.text}
+                          </p>
+                        </Badge>
                       </div>
-                      <div>
-                        <Link to={`/app/edit-product/${product._id}`}>
+
+                      <p className="mb-2 text-purple-500 font-bold text-lg">
+                        ${product.basePrice}
+                      </p>
+
+                      <div className="mb-4 text-sm text-gray-500">
+                        <p>Sold: {product.soldQuantity || 0}</p>
+                        <p>Rating: {product.rating || 0}/5</p>
+                      </div>
+
+                      <p className="mb-8 text-gray-600 dark:text-gray-400">
+                        {product.description && product.description.length > 100
+                          ? `${product.description.slice(0, 100)}...`
+                          : product.description || 'No description'}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Link to={`/app/products/${product._id}`}>
+                            <Button
+                              icon={EyeIcon}
+                              className="mr-3"
+                              aria-label="Preview"
+                              size="small"
+                            />
+                          </Link>
+                        </div>
+                        <div>
+                          <Link to={`/app/edit-product/${product._id}`}>
+                            <Button
+                              icon={EditIcon}
+                              className="mr-3"
+                              layout="outline"
+                              aria-label="Edit"
+                              size="small"
+                            />
+                          </Link>
                           <Button
-                            icon={EditIcon}
-                            className="mr-3"
+                            icon={TrashIcon}
                             layout="outline"
-                            aria-label="Edit"
+                            aria-label="Delete"
+                            onClick={() => openModal(product._id)}
                             size="small"
                           />
-                        </Link>
-                        <Button
-                          icon={TrashIcon}
-                          layout="outline"
-                          aria-label="Delete"
-                          onClick={() => openModal(product._id)}
-                          size="small"
-                        />
+                        </div>
                       </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-            ))}
+                    </CardBody>
+                  </Card>
+                </div>
+              );
+            })}
           </div>
 
           <Pagination
@@ -497,6 +612,31 @@ const Products = () => {
             onChange={onPageChange}
           />
         </>
+      )}
+
+      {/* Empty state when no products found */}
+      {data.length === 0 && (
+        <Card className="mb-8">
+          <CardBody>
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
+                No products found
+              </p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm">
+                {activeTab === "all" 
+                  ? "You haven't added any products yet."
+                  : `No products with status "${activeTab}" found.`}
+              </p>
+              {activeTab === "all" && (
+                <Link to="/app/add-product">
+                  <Button className="mt-4">
+                    Add your first product
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </CardBody>
+        </Card>
       )}
     </div>
   );

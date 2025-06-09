@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import Icon from "../components/Icon";
 import PageTitle from "../components/Typography/PageTitle";
-import { HomeIcon} from "../icons";
+import { HomeIcon } from "../icons";
 import {
   Card,
   CardBody,
@@ -40,10 +40,12 @@ const AddProduct = () => {
     height: 0,
     length: 0,
     width: 0,
-    status: "available",
+    status: "onwait",
     generalAttributes: [],
     variantAttributes: [],
     variants: [],
+    imageModerationStatus: "unchecked",
+    imageModerationNote: "",
   });
 
   // State for dynamic attributes
@@ -233,6 +235,7 @@ const AddProduct = () => {
         ...productData,
         storeId: user.storeId,
         productImages: imageUrls,
+        status: "onwait", // Luôn đặt status là onwait
         variants: productData.variants.map((variant) => ({
           ...variant,
           price: parseFloat(variant.price),
@@ -246,7 +249,9 @@ const AddProduct = () => {
       setUploadProgress(100);
 
       if (response.status === 200) {
-        alert("Sản phẩm đã được thêm thành công!");
+        alert(
+          "Sản phẩm đã được thêm thành công! Sản phẩm sẽ được Admin duyệt trước khi hiển thị."
+        );
         // Reset form or redirect
         setProductData({
           productName: "",
@@ -260,7 +265,7 @@ const AddProduct = () => {
           height: 0,
           length: 0,
           width: 0,
-          status: "available",
+          status: "onwait",
           generalAttributes: [],
           variantAttributes: [],
           variants: [],
@@ -691,18 +696,16 @@ const AddProduct = () => {
         {/* Right Side Card */}
         <Card>
           <CardBody>
-            <FormTitle>Product Status</FormTitle>
-            <Select
-              className="mb-4"
-              value={productData.status}
-              onChange={(e) =>
-                setProductData({ ...productData, status: e.target.value })
-              }
-            >
-              <option value="available">Available</option>
-              <option value="outofstock">Out of Stock</option>
-              <option value="onwait">On Wait</option>
-            </Select>
+            {/* Hiển thị thông báo về status */}
+            <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded">
+              <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+                Trạng thái sản phẩm
+              </h3>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                Sản phẩm mới thêm sẽ có trạng thái "Chờ duyệt" và cần được Admin
+                phê duyệt trước khi hiển thị công khai.
+              </p>
+            </div>
 
             <FormTitle>Sale Settings</FormTitle>
             <Label className="mb-4">
@@ -744,6 +747,9 @@ const AddProduct = () => {
               </p>
               <p className="text-sm mb-1">
                 Product Variants: {productData.variants.length}
+              </p>
+              <p className="text-sm mb-1 text-yellow-600 dark:text-yellow-400">
+                Status: Chờ duyệt
               </p>
             </div>
 

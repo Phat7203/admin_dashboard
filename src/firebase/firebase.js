@@ -30,5 +30,3 @@ if (user) {
 export const database = getDatabase(app)
 export const Storage = getStorage(app);
 export { auth };
-
-export const Storage = getStorage(app);
