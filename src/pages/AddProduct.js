@@ -80,7 +80,7 @@ const AddProduct = () => {
     };
 
     fetchCategories();
-  }, []);
+  }, [user.storeId]);
   // Tự động tạo variants khi variantAttributes thay đổi
   useEffect(() => {
     generateVariants();
