@@ -35,42 +35,123 @@ import Icon from "../components/Icon";
 import { genRating } from "../utils/genarateRating";
 import { useAuth } from "../context/AuthContext";
 import { deleteProduct, getProductsByStoreId } from "../api/ProductApi";
+import { getCategoriesByStore } from "../api/CategoryApi"; // Import hàm lấy category
+
 const Products = () => {
   const [view, setView] = useState("grid");
 
-  // Table and grid data handlling
+  // Table and grid data handling
   const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
+  const [allProducts, setAllProducts] = useState([]); // Lưu tất cả sản phẩm gốc
+  const [categories, setCategories] = useState([]); // Lưu danh sách categories
   const { user, loading } = useAuth();
+
+  // Filter states
+  const [sortBy, setSortBy] = useState(""); // "bestselling", "newest", ""
+  const [filterCategory, setFilterCategory] = useState(""); // categoryId hoặc ""
 
   // pagination setup
   const [resultsPerPage, setResultsPerPage] = useState(10);
-  const totalResults = response.length;
+  const [totalResults, setTotalResults] = useState(0);
 
   // pagination change control
   function onPageChange(p) {
     setPage(p);
   }
-  const fetchData = async () => {
-    if (loading) return; // Prevent multiple requests
-    const res = await getProductsByStoreId({ storeId: user.storeId });
-    if (res.status === 200) {
-      setData(
-        res.data.slice((page - 1) * resultsPerPage, page * resultsPerPage)
-      );
-      setResultsPerPage(res.data.length);
-      return res.data;
-    } else {
-      console.error("Failed to fetch products:", res);
+
+  // Fetch categories
+  const fetchCategories = async () => {
+    if (loading || !user?.storeId) return;
+    try {
+      const res = await getCategoriesByStore({ storeId: user.storeId });
+      if (res.status === 200) {
+        setCategories(res.data);
+      } else {
+        console.error("Failed to fetch categories:", res);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // Fetch all products
+  const fetchAllProducts = async () => {
+    if (loading || !user?.storeId) return;
+    try {
+      const res = await getProductsByStoreId({ storeId: user.storeId });
+      if (res.status === 200) {
+        setAllProducts(res.data);
+        setTotalResults(res.data.length);
+        return res.data;
+      } else {
+        console.error("Failed to fetch products:", res);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
       return [];
     }
   };
-  // here you would make another server request for new data
-  useEffect(() => {
-    fetchData();
-  }, [page, resultsPerPage]);
 
-  // Delete action model
+  // Apply filters and sorting
+  const applyFiltersAndSort = () => {
+    let filteredProducts = [...allProducts];
+
+    // Filter by category
+    if (filterCategory) {
+      filteredProducts = filteredProducts.filter(
+        product => product.categoryId === filterCategory
+      );
+    }
+
+    // Sort products
+    if (sortBy === "bestselling") {
+      // Sắp xếp theo số lượng đã bán (soldQuantity) giảm dần
+      filteredProducts.sort((a, b) => (b.soldQuantity || 0) - (a.soldQuantity || 0));
+    } else if (sortBy === "newest") {
+      // Sắp xếp theo thời gian tạo mới nhất (createdAt) giảm dần
+      filteredProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (sortBy === "price_asc") {
+      // Sắp xếp theo giá tăng dần
+      filteredProducts.sort((a, b) => (a.basePrice || 0) - (b.basePrice || 0));
+    } else if (sortBy === "price_desc") {
+      // Sắp xếp theo giá giảm dần
+      filteredProducts.sort((a, b) => (b.basePrice || 0) - (a.basePrice || 0));
+    }
+
+    // Update total results after filtering
+    setTotalResults(filteredProducts.length);
+
+    // Apply pagination
+    const startIndex = (page - 1) * resultsPerPage;
+    const endIndex = startIndex + parseInt(resultsPerPage);
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+    setData(paginatedProducts);
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    if (!loading && user?.storeId) {
+      fetchAllProducts();
+      fetchCategories();
+    }
+  }, [loading, user]);
+
+  // Apply filters when dependencies change
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      applyFiltersAndSort();
+    }
+  }, [allProducts, sortBy, filterCategory, page, resultsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [sortBy, filterCategory]);
+
+  // Delete action modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDeleteProduct, setSelectedDeleteProduct] = useState(null);
 
@@ -82,38 +163,55 @@ const Products = () => {
 
   async function deleteProductHandler() {
     if (selectedDeleteProduct) {
-      const res = await deleteProduct(selectedDeleteProduct._id);
-      if (res.status === 200) {
-        setData(
-          data.filter((product) => product._id !== selectedDeleteProduct._id)
-        );
-        setIsModalOpen(false);
-        setSelectedDeleteProduct(null);
-        fetchData();
-      } else {
-        console.error("Failed to delete product:", res);
+      try {
+        const res = await deleteProduct(selectedDeleteProduct._id);
+        if (res.status === 200) {
+          // Remove from allProducts array
+          setAllProducts(prev => 
+            prev.filter(product => product._id !== selectedDeleteProduct._id)
+          );
+          setIsModalOpen(false);
+          setSelectedDeleteProduct(null);
+        } else {
+          console.error("Failed to delete product:", res);
+        }
+      } catch (error) {
+        console.error("Error deleting product:", error);
       }
     }
   }
+
   function closeModal() {
     setIsModalOpen(false);
+    setSelectedDeleteProduct(null);
   }
 
   // Handle list view
   const handleChangeView = () => {
-    if (view === "list") {
-      setView("grid");
-    }
-    if (view === "grid") {
-      setView("list");
-    }
+    setView(view === "list" ? "grid" : "list");
+  };
+
+  // Handle sort change
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
+  };
+
+  // Handle category filter change
+  const handleCategoryFilterChange = (e) => {
+    setFilterCategory(e.target.value);
+  };
+
+  // Handle results per page change
+  const handleResultsPerPageChange = (e) => {
+    setResultsPerPage(parseInt(e.target.value));
+    setPage(1); // Reset to first page
   };
 
   return (
     <div>
       <PageTitle>All Products</PageTitle>
 
-      {/* Breadcum */}
+      {/* Breadcrumb */}
       <div className="flex text-gray-800 dark:text-gray-300">
         <div className="flex items-center text-purple-600">
           <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
@@ -125,53 +223,68 @@ const Products = () => {
         <p className="mx-2">All Products</p>
       </div>
 
-      {/* Sort */}
+      {/* Sort and Filter */}
       <Card className="mt-5 mb-5 shadow-md">
         <CardBody>
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
+            <div className="flex items-center flex-wrap gap-3">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                All Products
+                All Products ({totalResults} results)
               </p>
 
-              <Label className="mx-3">
-                <Select className="py-3">
-                  <option>Sort by</option>
-                  <option>Asc</option>
-                  <option>Desc</option>
+              {/* Sort Dropdown */}
+              <Label className="">
+                <Select 
+                  className="py-3"
+                  value={sortBy}
+                  onChange={handleSortChange}
+                >
+                  <option value="">Sort by</option>
+                  <option value="bestselling">Best Selling</option>
+                  <option value="newest">Newest</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
                 </Select>
               </Label>
 
-              <Label className="mx-3">
-                <Select className="py-3">
-                  <option>Filter by Category</option>
-                  <option>Electronics</option>
-                  <option>Cloths</option>
-                  <option>Mobile Accerssories</option>
+              {/* Category Filter */}
+              <Label className="">
+                <Select 
+                  className="py-3"
+                  value={filterCategory}
+                  onChange={handleCategoryFilterChange}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </Select>
               </Label>
 
+              {/* Results per page */}
               <Label className="mr-8">
-                {/* <!-- focus-within sets the color for the icon when input is focused --> */}
                 <div className="relative text-gray-500 focus-within:text-purple-600 dark:focus-within:text-purple-400">
-                  <input
-                    className="py-3 pr-5 text-sm text-black dark:text-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:focus:shadow-outline-gray form-input"
-                    placeholder="Number of Results"
+                  <Select
+                    className="py-3 pr-16"
                     value={resultsPerPage}
-                    onChange={(e) => setResultsPerPage(e.target.value)}
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center mr-3 pointer-events-none">
-                    {/* <SearchIcon className="w-5 h-5" aria-hidden="true" /> */}
-                    Results on {`${view}`}
-                  </div>
+                    onChange={handleResultsPerPageChange}
+                  >
+                    <option value={10}>10 per page</option>
+                    <option value={20}>20 per page</option>
+                    <option value={50}>50 per page</option>
+                    <option value={100}>100 per page</option>
+                  </Select>
                 </div>
               </Label>
             </div>
+            
             <div className="">
               <Button
                 icon={view === "list" ? ListViewIcon : GridViewIcon}
                 className="p-2"
-                aria-label="Edit"
+                aria-label="Toggle View"
                 onClick={handleChangeView}
               />
             </div>
@@ -179,24 +292,17 @@ const Products = () => {
         </CardBody>
       </Card>
 
-      {/* Delete product model */}
+      {/* Delete product modal */}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <ModalHeader className="flex items-center">
-          {/* <div className="flex items-center"> */}
           <Icon icon={TrashIcon} className="w-6 h-6 mr-3" />
           Delete Product
-          {/* </div> */}
         </ModalHeader>
         <ModalBody>
           Make sure you want to delete product{" "}
           {selectedDeleteProduct && `"${selectedDeleteProduct.productName}"`}?
         </ModalBody>
         <ModalFooter>
-          {/* I don't like this approach. Consider passing a prop to ModalFooter
-           * that if present, would duplicate the buttons in a way similar to this.
-           * Or, maybe find some way to pass something like size="large md:regular"
-           * to Button
-           */}
           <div className="hidden sm:block">
             <Button layout="outline" onClick={closeModal}>
               Cancel
@@ -231,7 +337,7 @@ const Products = () => {
                   <TableCell>Name</TableCell>
                   <TableCell>Stock</TableCell>
                   <TableCell>Rating</TableCell>
-                  <TableCell>QTY</TableCell>
+                  <TableCell>Sold</TableCell>
                   <TableCell>Price</TableCell>
                   <TableCell>Action</TableCell>
                 </tr>
@@ -253,19 +359,19 @@ const Products = () => {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        type={product.soldQuantity > 0 ? "success" : "danger"}
+                        type={product.status === 'available' ? "success" : "danger"}
                       >
-                        {product.soldQuantity > 0 ? "In Stock" : "Out of Stock"}
+                        {product.status === 'available' ? "In Stock" : "Out of Stock"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {genRating(product.rating, product.reviews, 5)}
+                      {genRating(product.rating, product.reviewCount, 5)}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {product.soldQuantity}
+                      {product.soldQuantity || 0}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {product.basePrice}
+                      ${product.basePrice}
                     </TableCell>
                     <TableCell>
                       <div className="flex">
@@ -308,41 +414,44 @@ const Products = () => {
         </>
       ) : (
         <>
-          {/* Car list */}
+          {/* Grid view */}
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-8">
             {data.map((product) => (
               <div className="" key={product._id}>
                 <Card>
                   <img
-                    className="object-cover w-full"
+                    className="object-cover w-full h-48"
                     src={product.productImages[0]}
                     alt="product"
                   />
                   <CardBody>
                     <div className="mb-3 flex items-center justify-between">
-                      <p className="font-semibold truncate  text-gray-600 dark:text-gray-300">
+                      <p className="font-semibold truncate text-gray-600 dark:text-gray-300">
                         {product.productName}
                       </p>
                       <Badge
-                        type={product.soldQuantity < 0 ? "success" : "danger"}
+                        type={product.status === 'available' ? "success" : "danger"}
                         className="whitespace-nowrap"
                       >
                         <p className="break-normal">
-                          {product.soldQuantity < 0
-                            ? `In Stock`
-                            : "Out of Stock"}
+                          {product.status === 'available' ? "In Stock" : "Out of Stock"}
                         </p>
                       </Badge>
                     </div>
 
                     <p className="mb-2 text-purple-500 font-bold text-lg">
-                      {product.basePrice}
+                      ${product.basePrice}
                     </p>
 
+                    <div className="mb-4 text-sm text-gray-500">
+                      <p>Sold: {product.soldQuantity || 0}</p>
+                      <p>Rating: {product.rating || 0}/5</p>
+                    </div>
+
                     <p className="mb-8 text-gray-600 dark:text-gray-400">
-                      {product.description.length > 100
+                      {product.description && product.description.length > 100
                         ? `${product.description.slice(0, 100)}...`
-                        : product.description}
+                        : product.description || 'No description'}
                     </p>
 
                     <div className="flex items-center justify-between">

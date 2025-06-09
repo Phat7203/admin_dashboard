@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import Icon from "../components/Icon";
 import PageTitle from "../components/Typography/PageTitle";
-import { HomeIcon, AddIcon, PublishIcon, StoreIcon } from "../icons";
+import { HomeIcon} from "../icons";
 import {
   Card,
   CardBody,

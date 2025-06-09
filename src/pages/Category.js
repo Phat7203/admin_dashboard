@@ -224,9 +224,7 @@ const Category = () => {
 
   const getSubCategoryName = (subCategoryId) => {
     const subCat = subCategories.find(
-      (sub) =>
-        String(sub._id) === String(subCategoryId) ||
-        String(sub.id) === String(subCategoryId)
+      (sub) => sub._id === subCategoryId._id
     );
     return subCat ? subCat.name : "Chưa phân loại";
   };

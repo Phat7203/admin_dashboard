@@ -654,7 +654,7 @@ const PromotionForm = ({
                       <button
                         type="button"
                         onClick={() => removeImage('promotionImage')}
-                        className="absolute -top-2 -right-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1 transition-colors"
+                        className="absolute top-0 right-0 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1 transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -703,7 +703,7 @@ const PromotionForm = ({
                       <button
                         type="button"
                         onClick={() => removeImage('backgroundImage')}
-                        className="absolute -top-2 -right-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1 transition-colors"
+                        className="absolute top-0 right-0 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1 transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
