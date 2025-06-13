@@ -26,6 +26,11 @@ const adminAppSidebarRoutes = [
     name: 'Chương trình khuyến mãi'
   },
   {
+    path: '/app/products-app',
+    icon: 'TruckIcon',
+    name: 'Quản lý sản phẩm'
+  },
+  {
     path: '/app/ranks',
     icon: 'GroupIcon',
     name: 'Xếp hạng thành viên'

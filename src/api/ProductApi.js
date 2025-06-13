@@ -334,3 +334,28 @@ export const getProductsByStatusAndStoreId = async (storeId, status) => {
     }
   }
 };
+export const updateImageModerationStatus = async (productId, moderationStatus, note = '') => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/products/products/${productId}/image-moderation`;
+    const config = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      },
+      data: { 
+        imageModerationStatus: moderationStatus,
+        imageModerationNote: note 
+      }
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+};

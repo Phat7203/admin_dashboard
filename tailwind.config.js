@@ -2,7 +2,9 @@ const defaultTheme = require("tailwindcss/defaultTheme");
 const windmill = require("@windmill/react-ui/config");
 
 module.exports = windmill({
-  content: ["./src/**/*.{js,jsx,ts,tsx}"], 
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}", // ← Quan trọng
+  ],
   theme: {
     extend: {
       fontFamily: {

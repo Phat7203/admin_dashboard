@@ -1,3 +1,4 @@
+import { name } from "faker/lib/locales/az";
 import { lazy } from "react";
 const Dashboard = lazy(() => import("../pages/admin-app/Dashboard"));
 const SubCategory = lazy(() => import("../pages/admin-app/SubCategory"));
@@ -6,7 +7,7 @@ const Promotion = lazy(() => import("../pages/admin-app/Promotion"));
 const Rank = lazy(() => import("../pages/admin-app/Rank"));
 const Role = lazy(() => import("../pages/admin-app/Role"));
 const Store = lazy(() => import("../pages/admin-app/Store"));
-
+const Product = lazy(() => import("../pages/admin-app/Product"));
 const adminAppRoutes = [
   {
     path: "/dashboard",
@@ -43,6 +44,12 @@ const adminAppRoutes = [
     component: Store,
     name: 'Cửa hàng',
     icon: 'StoreIcon'
+  },
+  {
+    path: "/products-app",
+    component: Product,
+    name: 'Quản lý sản phẩm',
+    icon: 'TruckIcon'
   }
 ];
 
