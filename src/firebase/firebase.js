@@ -1,7 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import firebase from 'firebase/compat/app';
+import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
+
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 const firebaseConfig = {
@@ -24,7 +26,7 @@ firebase.initializeApp(firebaseConfig);
 const user = auth.currentUser;
 if (user) {
   console.log("User is signed in:", user);
-}
-export { auth };
-
+}// export const Firestore = getFirestore(FirebaseApp);
+export const database = getDatabase(app)
 export const Storage = getStorage(app);
+export { auth };

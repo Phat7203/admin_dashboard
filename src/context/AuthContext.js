@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
             if (roleData.status === 200) {
               setUserRole(roleData.data);
               setUser({
-                ...firebaseUser,
+                ...userData.data,
                 role: roleData.data,
               });
             }

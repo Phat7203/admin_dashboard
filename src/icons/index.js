@@ -37,6 +37,9 @@ import { ReactComponent as StarIcon } from "./star.svg";
 import { ReactComponent as AddIcon } from "./add.svg";
 import { ReactComponent as PublishIcon } from "./publish.svg";
 import { ReactComponent as StoreIcon } from "./store.svg";
+import { ReactComponent as AlertTriangleIcon} from "./alert-triangle.svg";
+import { ReactComponent as CheckIcon } from "./check.svg";
+import { ReactComponent as ClockIcon } from "./clock.svg";
 
 export {
   GroupIcon,
@@ -78,4 +81,8 @@ export {
   OutlinePersonIcon,
   OutlineCogIcon,
   OutlineLogoutIcon,
+  AlertTriangleIcon,
+  CheckIcon,
+  ClockIcon,
+  
 };

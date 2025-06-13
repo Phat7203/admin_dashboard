@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import Icon from "../components/Icon";
 import PageTitle from "../components/Typography/PageTitle";
-import { HomeIcon } from "../icons";
+import { HomeIcon, AddIcon, PublishIcon, StoreIcon } from "../icons";
 import {
   Card,
   CardBody,
@@ -13,9 +13,9 @@ import {
   Select,
 } from "@windmill/react-ui";
 import { getCategoriesByStore } from "../api/CategoryApi";
+import { getProductById, updateProduct } from "../api/ProductApi";
 import { useAuth } from "../context/AuthContext";
 import { uploadMultipleFiles } from "../utils/fileUpload";
-import { addProduct } from "../api/ProductApi";
 
 const FormTitle = ({ children }) => {
   return (
@@ -25,8 +25,10 @@ const FormTitle = ({ children }) => {
   );
 };
 
-const AddProduct = () => {
+const EditProduct = () => {
   const { user } = useAuth();
+  const { id } = useParams(); // Lấy ID từ URL params
+
   // State for form data
   const [productData, setProductData] = useState({
     productName: "",
@@ -40,12 +42,10 @@ const AddProduct = () => {
     height: 0,
     length: 0,
     width: 0,
-    status: "onwait",
+    status: "available",
     generalAttributes: [],
     variantAttributes: [],
     variants: [],
-    imageModerationStatus: "unchecked",
-    imageModerationNote: "",
   });
 
   // State for dynamic attributes
@@ -63,15 +63,58 @@ const AddProduct = () => {
   const [variantValueInput, setVariantValueInput] = useState("");
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [newImages, setNewImages] = useState([]); // State riêng cho ảnh mới upload
 
-  // Thêm useEffect để load categories khi component mount
+  // Load product data khi component mount
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        setLoadingProduct(true);
+        const response = await getProductById({ id: id });
+        if (response.status === 200 && response.data) {
+          const product = response.data;
+          setProductData({
+            productName: product.productName || "",
+            basePrice: product.basePrice || 0,
+            categoryId: product.categoryId || "",
+            productImages: product.productImages || [],
+            description: product.description || "",
+            isOnSale: product.isOnSale || false,
+            discountPrice: product.discountPrice || 0,
+            weight: product.weight || 0,
+            height: product.height || 0,
+            length: product.length || 0,
+            width: product.width || 0,
+            status: product.status || "available",
+            generalAttributes: product.generalAttributes || [],
+            variantAttributes: product.variantAttributes || [],
+            variants: product.variants || [],
+          });
+        } else {
+          throw new Error("Không thể tải thông tin sản phẩm");
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+        alert("Không thể tải thông tin sản phẩm: " + error.message);
+      } finally {
+        setLoadingProduct(false);
+      }
+    };
+
+    if (id) {
+      fetchProductData();
+    }
+  }, [id]);
+
+  // Load categories khi component mount
   useEffect(() => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        const response = await getCategoriesByStore({ storeId: user.storeId }); // Thay bằng API call thực tế của bạn
+        const response = await getCategoriesByStore({ storeId: user.storeId });
         setCategories(response.data || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -81,8 +124,11 @@ const AddProduct = () => {
       }
     };
 
-    fetchCategories();
-  }, [user.storeId]);
+    if (user?.storeId) {
+      fetchCategories();
+    }
+  }, [user?.storeId]);
+
   // Tự động tạo variants khi variantAttributes thay đổi
   useEffect(() => {
     generateVariants();
@@ -113,8 +159,18 @@ const AddProduct = () => {
 
     generateCombinations(0, []);
 
-    // Tạo variants từ combinations
+    // Tạo variants từ combinations, giữ lại dữ liệu của variants hiện có
     const newVariants = combinations.map((combo, idx) => {
+      // Tìm variant hiện có với cùng attributes
+      const existingVariant = productData.variants.find(
+        (v) =>
+          v.attributes &&
+          v.attributes.length === combo.length &&
+          v.attributes.every((attr) =>
+            combo.some((c) => c.name === attr.name && c.value === attr.value)
+          )
+      );
+
       // Tạo SKU tự động
       const sku = `${productData.productName
         .replace(/\s+/g, "-")
@@ -122,14 +178,16 @@ const AddProduct = () => {
         .map((attr) => attr.value.replace(/\s+/g, ""))
         .join("-")}`;
 
-      return {
-        id: Date.now() + idx,
-        attributes: combo,
-        price: productData.basePrice || 0,
-        quantity: 0,
-        sku: sku,
-        image: "",
-      };
+      return (
+        existingVariant || {
+          id: Date.now() + idx,
+          attributes: combo,
+          price: productData.basePrice || 0,
+          quantity: 0,
+          sku: sku,
+          image: "",
+        }
+      );
     });
 
     setProductData((prev) => ({ ...prev, variants: newVariants }));
@@ -201,6 +259,14 @@ const AddProduct = () => {
     setVariantAttribute({ ...variantAttribute, values: newValues });
   };
 
+  // Hàm xóa ảnh hiện có
+  const removeExistingImage = (imageIndex) => {
+    const newImages = productData.productImages.filter(
+      (_, i) => i !== imageIndex
+    );
+    setProductData({ ...productData, productImages: newImages });
+  };
+
   // Hàm handle submit
   const handleSubmit = async () => {
     try {
@@ -222,20 +288,22 @@ const AddProduct = () => {
 
       setIsSubmitting(true);
 
-      // Upload images first
-      let imageUrls = [];
-      if (productData.productImages.length > 0) {
+      // Upload new images if any
+      let newImageUrls = [];
+      if (newImages.length > 0) {
         setUploadProgress(10);
-        imageUrls = await uploadMultipleFiles(productData.productImages);
+        newImageUrls = await uploadMultipleFiles(newImages);
         setUploadProgress(50);
       }
+
+      // Combine existing images with new uploaded images
+      const allImages = [...productData.productImages, ...newImageUrls];
 
       // Prepare data for API
       const finalProductData = {
         ...productData,
         storeId: user.storeId,
-        productImages: imageUrls,
-        status: "onwait", // Luôn đặt status là onwait
+        productImages: allImages,
         variants: productData.variants.map((variant) => ({
           ...variant,
           price: parseFloat(variant.price),
@@ -243,74 +311,89 @@ const AddProduct = () => {
         })),
       };
 
-      // Call API to save product
-      console.log("Submitting product data:", finalProductData);
-      const response = await addProduct(finalProductData);
+      // Call API to update product
+      console.log("Updating product data:", finalProductData);
+      const response = await updateProduct(id, finalProductData);
       setUploadProgress(100);
 
       if (response.status === 200) {
-        alert(
-          "Sản phẩm đã được thêm thành công! Sản phẩm sẽ được Admin duyệt trước khi hiển thị."
-        );
-        // Reset form or redirect
-        setProductData({
-          productName: "",
-          basePrice: 0,
-          categoryId: "",
-          productImages: [],
-          description: "",
-          isOnSale: false,
-          discountPrice: 0,
-          weight: 0,
-          height: 0,
-          length: 0,
-          width: 0,
-          status: "onwait",
-          generalAttributes: [],
-          variantAttributes: [],
-          variants: [],
-        });
+        alert("Sản phẩm đã được cập nhật thành công!");
+        // Reset new images
+        setNewImages([]);
       } else {
         throw new Error(response.data?.message || "Có lỗi xảy ra");
       }
     } catch (error) {
-      console.error("Error adding product:", error);
-      alert(error.message || "Có lỗi xảy ra khi thêm sản phẩm");
+      console.error("Error updating product:", error);
+      alert(error.message || "Có lỗi xảy ra khi cập nhật sản phẩm");
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);
     }
   };
 
+  // Loading state
+  if (loadingProduct) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Đang tải thông tin sản phẩm...</div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <PageTitle>Add New Product</PageTitle>
+      <PageTitle>Edit Product</PageTitle>
 
       {/* Breadcum */}
-      <div className="flex text-gray-800 dark:text-gray-300">
+      <Card className="flex text-gray-800 dark:text-gray-300">
         <div className="flex items-center text-purple-600">
           <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
           <NavLink exact to="/app/dashboard-shop" className="mx-2">
             Dashboard
           </NavLink>
+          <NavLink exact to="/app/products" className="mx-2">
+            All product
+          </NavLink>
         </div>
         {">"}
-        <p className="mx-2">Add new Product</p>
-      </div>
+        <p className="mx-2">Edit Product</p>
+      </Card>
 
       <div className="w-full mt-8 grid gap-4 grid-col md:grid-cols-3">
         <Card className="row-span-2 md:col-span-2">
           <CardBody>
-            {/* Basic Information */}
-            <FormTitle>Product Images</FormTitle>
+            {/* Existing Product Images */}
+            <FormTitle>Current Product Images</FormTitle>
+            {productData.productImages.length > 0 && (
+              <div className="mb-4 grid grid-cols-3 gap-2">
+                {productData.productImages.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image}
+                      alt={`Product ${index + 1}`}
+                      className="w-full h-48 object-cover rounded border"
+                    />
+                    <button
+                      onClick={() => removeExistingImage(index)}
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* New Images Upload */}
+            <FormTitle>Add New Images</FormTitle>
             <input
               type="file"
               multiple
               className="mb-4 text-gray-800 dark:text-gray-300"
               onChange={(e) => {
-                // Handle multiple images
                 const files = Array.from(e.target.files);
-                setProductData({ ...productData, productImages: files });
+                setNewImages(files);
               }}
             />
 
@@ -441,7 +524,7 @@ const AddProduct = () => {
               ))}
             </div>
 
-            {/* Variant Attributes Section - IMPROVED */}
+            {/* Variant Attributes Section */}
             <FormTitle>Product Variants</FormTitle>
             <div className="mb-4 p-4 border rounded">
               {/* Form thêm variant attribute mới */}
@@ -542,11 +625,11 @@ const AddProduct = () => {
               ))}
             </div>
 
-            {/* Generated Variants Section - NEW */}
+            {/* Generated Variants Section */}
             {productData.variants.length > 0 && (
               <div className="mb-4">
                 <FormTitle>
-                  Generated Product Variants ({productData.variants.length})
+                  Product Variants ({productData.variants.length})
                 </FormTitle>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {productData.variants.map((variant) => (
@@ -696,16 +779,18 @@ const AddProduct = () => {
         {/* Right Side Card */}
         <Card>
           <CardBody>
-            {/* Hiển thị thông báo về status */}
-            <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded">
-              <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-                Trạng thái sản phẩm
-              </h3>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                Sản phẩm mới thêm sẽ có trạng thái "Chờ duyệt" và cần được Admin
-                phê duyệt trước khi hiển thị công khai.
-              </p>
-            </div>
+            <FormTitle>Product Status</FormTitle>
+            <Select
+              className="mb-4"
+              value={productData.status}
+              onChange={(e) =>
+                setProductData({ ...productData, status: e.target.value })
+              }
+            >
+              <option value="available">Available</option>
+              <option value="outofstock">Out of Stock</option>
+              <option value="onwait">On Wait</option>
+            </Select>
 
             <FormTitle>Sale Settings</FormTitle>
             <Label className="mb-4">
@@ -748,9 +833,6 @@ const AddProduct = () => {
               <p className="text-sm mb-1">
                 Product Variants: {productData.variants.length}
               </p>
-              <p className="text-sm mb-1 text-yellow-600 dark:text-yellow-400">
-                Status: Chờ duyệt
-              </p>
             </div>
 
             <div className="mt-8">
@@ -762,11 +844,11 @@ const AddProduct = () => {
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center">
-                    <div className="mr-2">Đang xử lý...</div>
+                    <div className="mr-2">Đang cập nhật...</div>
                     <div className="text-sm">{uploadProgress}%</div>
                   </div>
                 ) : (
-                  "Thêm sản phẩm"
+                  "Cập nhật sản phẩm"
                 )}
               </Button>
               {isSubmitting && (
@@ -785,4 +867,4 @@ const AddProduct = () => {
   );
 };
 
-export default AddProduct;
+export default EditProduct;
