@@ -9,6 +9,8 @@ const SingleProduct = lazy(() => import("../pages/SingleProduct"));
 const Chats = lazy(() => import("../pages/Chats"));
 const AddProduct = lazy(() => import("../pages/AddProduct"));
 const EditProduct = lazy(() => import("../pages/EditProduct"));
+const Orders = lazy(() => import("../pages/Orders"));
+const Profile = lazy(() => import("../pages/Profile"));
 const adminShopRoutes = [
   {
     path: "/dashboard-shop",
@@ -64,6 +66,24 @@ const adminShopRoutes = [
     component: EditProduct,
     icon: "HomeIcon",
     requiredPermissions: ["manage_product"],
+  },
+  {
+    path: "/order",
+    component: Orders,
+    icon: "HomeIcon",
+    requiredPermissions: ["manage_order"],
+  },
+  {
+    path: "/manage-profile",
+    component: Profile,
+    icon: "HomeIcon",
+    requiredPermissions: ["profile_view"],
+  },
+  {
+    path: "/manage-store",
+    component: Profile,
+    icon: "HomeIcon",
+    requiredPermissions: ["manage_store"],
   },
 ];
 

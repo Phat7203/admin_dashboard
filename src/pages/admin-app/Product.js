@@ -431,7 +431,7 @@ const AdminProductModeration = () => {
                   {isProcessing ? 'Processing...' : 'Reject Product'}
                 </Button>
                 <Button
-                  onClick={() => handleProductApproval(selectedProduct._id, 'isActive', approvalNote)}
+                  onClick={() => handleProductApproval(selectedProduct._id, 'available', approvalNote)}
                   disabled={isProcessing}
                   className="bg-green-500 hover:bg-green-600 flex items-center gap-2"
                 >
@@ -611,7 +611,7 @@ const AdminProductModeration = () => {
                 >
                   <option value="">All Status</option>
                   <option value="onwait">Pending Review</option>
-                  <option value="isActive">Active</option>
+                  <option value="available">Active</option>
                 </Select>
               </Label>
 

@@ -1,5 +1,5 @@
 // src/api/storePromotionApi.js
-import { getIdToken } from "../midleware/getToken";
+import { getIdToken } from "../middleware/getToken";
 import { api } from './AppApi';
 
 // Tạo mới một khuyến mãi

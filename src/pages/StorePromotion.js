@@ -24,7 +24,7 @@ import {
   updateStorePromotion,
   deleteStorePromotion,
   updatePromotionStatus,
-} from "../api/StrorePromotion"; // Cập nhật tên file import
+} from "../api/StorePromotion"; // Cập nhật tên file import
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import { NavLink } from "react-router-dom/cjs/react-router-dom";

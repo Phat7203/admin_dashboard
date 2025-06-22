@@ -3,7 +3,12 @@ const windmill = require("@windmill/react-ui/config");
 
 module.exports = windmill({
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // ← Quan trọng
+    './src/**/*.html',
+		'./src/**/*.njk',
+		'./src/**/*.md',
+		'./src/_data/colors.js',
+		'./src/_data/structure.js',
+		'./src/assets/js/*.js'
   ],
   theme: {
     extend: {

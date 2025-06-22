@@ -71,7 +71,7 @@ const AddProduct = () => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        const response = await getCategoriesByStore({ storeId: user.storeId }); // Thay bằng API call thực tế của bạn
+        const response = await getCategoriesByStore({ storeId: user.storeId });
         setCategories(response.data || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -83,10 +83,65 @@ const AddProduct = () => {
 
     fetchCategories();
   }, [user.storeId]);
+
   // Tự động tạo variants khi variantAttributes thay đổi
   useEffect(() => {
     generateVariants();
   }, [productData.variantAttributes, productData.basePrice]);
+
+  // Hàm kiểm tra file có phải là hình ảnh không
+  const isImageFile = (file) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    return allowedTypes.includes(file.type);
+  };
+
+  // Hàm xử lý upload hình ảnh chính
+  const handleMainImagesUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const imageFiles = files.filter(file => {
+      if (!isImageFile(file)) {
+        alert(`File ${file.name} không phải là hình ảnh hợp lệ. Chỉ chấp nhận JPG, PNG, GIF, WEBP.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (imageFiles.length > 0) {
+      setProductData({ ...productData, productImages: imageFiles });
+    }
+  };
+
+  // Hàm xử lý upload hình ảnh cho variant
+  const handleVariantImageUpload = (variantId, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!isImageFile(file)) {
+      alert(`File ${file.name} không phải là hình ảnh hợp lệ. Chỉ chấp nhận JPG, PNG, GIF, WEBP.`);
+      return;
+    }
+
+    setProductData((prev) => ({
+      ...prev,
+      variants: prev.variants.map((variant) =>
+        variant.id === variantId 
+          ? { ...variant, imageFile: file, image: URL.createObjectURL(file) }
+          : variant
+      ),
+    }));
+  };
+
+  // Hàm xóa hình ảnh variant
+  const removeVariantImage = (variantId) => {
+    setProductData((prev) => ({
+      ...prev,
+      variants: prev.variants.map((variant) =>
+        variant.id === variantId 
+          ? { ...variant, imageFile: null, image: "" }
+          : variant
+      ),
+    }));
+  };
 
   // Hàm tạo tất cả combinations từ variant attributes
   const generateVariants = () => {
@@ -113,8 +168,23 @@ const AddProduct = () => {
 
     generateCombinations(0, []);
 
+    // Giữ lại các variant images đã có khi regenerate
+    const existingVariantImages = {};
+    productData.variants.forEach(variant => {
+      const key = variant.attributes.map(attr => `${attr.name}:${attr.value}`).join('|');
+      if (variant.imageFile || variant.image) {
+        existingVariantImages[key] = {
+          imageFile: variant.imageFile,
+          image: variant.image
+        };
+      }
+    });
+
     // Tạo variants từ combinations
     const newVariants = combinations.map((combo, idx) => {
+      const key = combo.map(attr => `${attr.name}:${attr.value}`).join('|');
+      const existingImage = existingVariantImages[key];
+      
       // Tạo SKU tự động
       const sku = `${productData.productName
         .replace(/\s+/g, "-")
@@ -128,7 +198,8 @@ const AddProduct = () => {
         price: productData.basePrice || 0,
         quantity: 0,
         sku: sku,
-        image: "",
+        image: existingImage?.image || "",
+        imageFile: existingImage?.imageFile || null,
       };
     });
 
@@ -222,25 +293,48 @@ const AddProduct = () => {
 
       setIsSubmitting(true);
 
-      // Upload images first
-      let imageUrls = [];
+      // Upload main images first
+      let mainImageUrls = [];
       if (productData.productImages.length > 0) {
         setUploadProgress(10);
-        imageUrls = await uploadMultipleFiles(productData.productImages);
-        setUploadProgress(50);
+        mainImageUrls = await uploadMultipleFiles(productData.productImages);
+        setUploadProgress(30);
       }
+
+      // Upload variant images
+      const variantsWithImages = await Promise.all(
+        productData.variants.map(async (variant) => {
+          let variantImageUrl = "";
+          
+          if (variant.imageFile) {
+            // Upload variant-specific image
+            const [uploadedUrl] = await uploadMultipleFiles([variant.imageFile]);
+            variantImageUrl = uploadedUrl;
+          } else if (mainImageUrls.length > 0) {
+            // Use first main image as default
+            variantImageUrl = mainImageUrls[0];
+          }
+
+          return {
+            ...variant,
+            price: parseFloat(variant.price),
+            quantity: parseInt(variant.quantity),
+            image: variantImageUrl,
+            // Remove imageFile before sending to API
+            imageFile: undefined,
+          };
+        })
+      );
+
+      setUploadProgress(70);
 
       // Prepare data for API
       const finalProductData = {
         ...productData,
         storeId: user.storeId,
-        productImages: imageUrls,
-        status: "onwait", // Luôn đặt status là onwait
-        variants: productData.variants.map((variant) => ({
-          ...variant,
-          price: parseFloat(variant.price),
-          quantity: parseInt(variant.quantity),
-        })),
+        productImages: mainImageUrls,
+        status: "onwait",
+        variants: variantsWithImages,
       };
 
       // Call API to save product
@@ -252,7 +346,7 @@ const AddProduct = () => {
         alert(
           "Sản phẩm đã được thêm thành công! Sản phẩm sẽ được Admin duyệt trước khi hiển thị."
         );
-        // Reset form or redirect
+        // Reset form
         setProductData({
           productName: "",
           basePrice: 0,
@@ -301,18 +395,45 @@ const AddProduct = () => {
       <div className="w-full mt-8 grid gap-4 grid-col md:grid-cols-3">
         <Card className="row-span-2 md:col-span-2">
           <CardBody>
-            {/* Basic Information */}
+            {/* Product Images */}
             <FormTitle>Product Images</FormTitle>
-            <input
-              type="file"
-              multiple
-              className="mb-4 text-gray-800 dark:text-gray-300"
-              onChange={(e) => {
-                // Handle multiple images
-                const files = Array.from(e.target.files);
-                setProductData({ ...productData, productImages: files });
-              }}
-            />
+            <div className="mb-4">
+              <div className="mb-2">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  className="text-gray-800 dark:text-gray-300"
+                  onChange={handleMainImagesUpload}
+                />
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Chỉ chấp nhận file hình ảnh: JPG, PNG, GIF, WEBP
+              </p>
+              {/* Preview main images */}
+              {productData.productImages.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {Array.from(productData.productImages).map((file, idx) => (
+                    <div key={idx} className="relative">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${idx + 1}`}
+                        className="w-16 h-16 object-cover rounded border"
+                      />
+                      <button
+                        onClick={() => {
+                          const newImages = Array.from(productData.productImages).filter((_, i) => i !== idx);
+                          setProductData({ ...productData, productImages: newImages });
+                        }}
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <FormTitle>Product Name</FormTitle>
             <Label>
@@ -441,7 +562,7 @@ const AddProduct = () => {
               ))}
             </div>
 
-            {/* Variant Attributes Section - IMPROVED */}
+            {/* Variant Attributes Section */}
             <FormTitle>Product Variants</FormTitle>
             <div className="mb-4 p-4 border rounded">
               {/* Form thêm variant attribute mới */}
@@ -542,7 +663,7 @@ const AddProduct = () => {
               ))}
             </div>
 
-            {/* Generated Variants Section - NEW */}
+            {/* Generated Variants Section với Image Upload */}
             {productData.variants.length > 0 && (
               <div className="mb-4">
                 <FormTitle>
@@ -554,7 +675,7 @@ const AddProduct = () => {
                       key={variant.id}
                       className="p-4 border rounded bg-gray-50 dark:bg-gray-700"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                           <Label>
                             <span className="text-sm font-medium">Variant</span>
@@ -610,6 +731,37 @@ const AddProduct = () => {
                               placeholder="Auto-generated"
                             />
                           </Label>
+                        </div>
+                        <div>
+                          <div className="mb-2">
+                            <span className="text-sm font-medium block mb-1">Variant Image</span>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                              onChange={(e) => handleVariantImageUpload(variant.id, e)}
+                              className="text-xs w-full"
+                            />
+                            {variant.image && (
+                              <div className="mt-2 relative inline-block">
+                                <img
+                                  src={variant.image}
+                                  alt="Variant preview"
+                                  className="w-12 h-12 object-cover rounded border"
+                                />
+                                <button
+                                  onClick={() => removeVariantImage(variant.id)}
+                                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            )}
+                            {!variant.image && productData.productImages.length > 0 && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Sẽ dùng ảnh chính mặc định
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -740,6 +892,9 @@ const AddProduct = () => {
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded">
               <h3 className="font-semibold mb-2">Summary</h3>
               <p className="text-sm mb-1">
+                Main Images: {productData.productImages.length}
+              </p>
+              <p className="text-sm mb-1">
                 General Attributes: {productData.generalAttributes.length}
               </p>
               <p className="text-sm mb-1">
@@ -747,6 +902,9 @@ const AddProduct = () => {
               </p>
               <p className="text-sm mb-1">
                 Product Variants: {productData.variants.length}
+              </p>
+              <p className="text-sm mb-1">
+                Variants with Custom Images: {productData.variants.filter(v => v.imageFile).length}
               </p>
               <p className="text-sm mb-1 text-yellow-600 dark:text-yellow-400">
                 Status: Chờ duyệt

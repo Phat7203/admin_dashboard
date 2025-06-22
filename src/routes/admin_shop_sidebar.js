@@ -35,9 +35,9 @@ const adminShopSidebarRoutes = [
     ],
   },
   {
-    path: '/app/store-settings',
+    path: '/app/mange-store',
     icon: 'HomeIcon',
-    name: 'Store Settings',
+    name: 'Manage Store',
     requiredPermissions: ['manage_store']
   },
   {
@@ -45,6 +45,12 @@ const adminShopSidebarRoutes = [
     icon: 'ChatIcon',
     name: 'Chat with Customer',
     requiredPermissions: ['chat_with_customer']
-  }
+  },
+  {
+    path: "/app/order",
+    icon: "HomeIcon",
+    name: 'Orders',
+    requiredPermissions: ["manage_order"],
+  },
 ];
 export default adminShopSidebarRoutes;

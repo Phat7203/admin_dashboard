@@ -1,5 +1,5 @@
 import { data } from "autoprefixer";
-import { getIdToken } from "../midleware/getToken";
+import { getIdToken } from "../middleware/getToken";
 import { api } from "./AppApi";
 
 const getProvinces = async () => {
