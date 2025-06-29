@@ -1,55 +1,66 @@
 const adminShopSidebarRoutes = [
   {
-    path: '/app/dashboard-shop',
-    icon: 'HomeIcon',
-    name: 'Dashboard',
-    requiredPermissions: ['manage_store']
+    path: "/app/dashboard-shop",
+    icon: "HomeIcon",
+    name: "Tổng quan",
+    requiredPermissions: ["manage_store"],
   },
   {
-    path: '/app/store-promotions',
-    icon: 'HomeIcon',
-    name: 'Store Promotions',
-    requiredPermissions: ['manage_storePromotion']
+    path: "/app/store-promotions",
+    icon: "MoneyIcon",
+    name: "Quản lý khuyến mãi",
+    requiredPermissions: ["manage_storePromotion"],
   },
   {
-    path: '/app/categories',
-    icon: 'HomeIcon',
-    name: 'Categories',
-    requiredPermissions: ['manage_category']
+    path: "/app/categories",
+    icon: "StoreIcon",
+    name: "Doanh mục",
+    requiredPermissions: ["manage_category"],
   },
   {
-    icon: "TruckIcon",
-    name: "Products",
-    requiredPermissions: ['manage_product'],
+    icon: "PagesIcon",
+    name: "Sản phẩm",
+    requiredPermissions: ["manage_product"],
     routes: [
       {
         path: "/app/products",
-        name: "All Products",
-        requiredPermissions: ['manage_product'],
+        name: "Tất cả sản phẩm",
+        requiredPermissions: ["manage_product"],
       },
       {
         path: "/app/add-product",
-        name: "Add Product",
-        requiredPermissions: ['manage_product'],
+        name: "Thêm sản phẩm",
+        requiredPermissions: ["manage_product"],
       },
     ],
   },
   {
-    path: '/app/mange-store',
-    icon: 'HomeIcon',
-    name: 'Manage Store',
-    requiredPermissions: ['manage_store']
+    icon: "PeopleIcon",
+    name: "Quản lý nhân viên",
+    requiredPermissions: ["manage_staff"],
+    routes: [
+      {
+        path: "/app/manage-staff",
+        name: "Nhân viên",
+        requiredPermissions: ["manage_staff"],
+      },
+      {
+        path: "/app/manage-permissions",
+        name: "Phân quyền",
+        requiredPermissions: ["manage_permissions"],
+      },
+    ],
   },
   {
-    path: '/app/chat',
-    icon: 'ChatIcon',
-    name: 'Chat with Customer',
-    requiredPermissions: ['chat_with_customer']
+    path: "/app/chat",
+    icon: "ChatIcon",
+    name: "Nhắn tin với khách hàng",
+    requiredPermissions: ["chat_with_customer"],
   },
   {
     path: "/app/order",
-    icon: "HomeIcon",
-    name: 'Orders',
+    icon: "TruckIcon",
+    name: "Đơn hàng",
     requiredPermissions: ["manage_order"],
   },
 ];

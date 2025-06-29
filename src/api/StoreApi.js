@@ -26,13 +26,11 @@ const getAllStores = async () => {
 
 const addStore = async (data) => {
   try {
-    const idToken = await getIdToken();
     const url = "/store/addStore";
     const config = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       data: data,
     };
@@ -139,4 +137,51 @@ const getStoreById = async (id) => {
     }
   }
 };
-export { getAllStores, addStore, updateStore, deleteStore, approveStore, getStoreById };
+const getOverviewStore = async (storeId) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/store/overview/${storeId}`;
+    const config = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    } else {
+      throw error;
+    }
+  }
+};
+const getMonthlyStatsStore = async (storeId, month, year) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/store/monthly-stats/${storeId}`;
+    const config = {
+      method: "GET",
+      params: {
+        month: month,
+        year: year,
+      },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+    };
+
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    } else {
+      throw error;
+    }
+  }
+};
+export { getAllStores, addStore, updateStore, deleteStore, approveStore, getStoreById, getOverviewStore, getMonthlyStatsStore };

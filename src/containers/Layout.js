@@ -14,15 +14,20 @@ const Page404 = lazy(() => import("../pages/404"));
 
 function Layout() {
   const { isSidebarOpen, closeSidebar } = useContext(SidebarContext);
-  const { userRole } = useAuth();
+  const { userRole, loading } = useAuth();
   let location = useLocation();
 
   // Filter routes based on user permissions
-  const isAdminApp = userRole?.name === "admin_app";
-
+  useEffect(() => {
+    console.log("User Role:", userRole);
+  }, []);
   useEffect(() => {
     closeSidebar();
   }, [location]);
+
+  if (loading) {
+    return <ThemedSuspense />;
+  }
 
   return (
     <div
@@ -37,7 +42,7 @@ function Layout() {
         <Main>
           <Suspense fallback={<ThemedSuspense />}>
             <Switch>
-              {isAdminApp &&
+              {(userRole?.name === "admin_app") &&
                 routes.adminApp.map((route, i) => (
                   <ProtectedRoute
                     key={i}
@@ -49,7 +54,7 @@ function Layout() {
                 ))}
 
               {/* Routes cho Admin Shop */}
-              {!isAdminApp &&
+              {(userRole?.name !== "admin_app") &&
                 routes.adminShop.map((route, i) => (
                   <ProtectedRoute
                     key={i}
@@ -60,7 +65,7 @@ function Layout() {
                     isAdminApp={false}
                   />
                 ))}
-               {isAdminApp ? (<Redirect exact from="/app" to="/app/dashboard" />) : (<Redirect exact from="/app" to="/app/dashboard-shop"/>)}
+               {(userRole?.name === "admin_app") ? (<Redirect exact from="/app" to="/app/dashboard" />) : (<Redirect exact from="/app" to="/app/dashboard-shop"/>)}
               <Route component={Page404} />
             </Switch>
           </Suspense>

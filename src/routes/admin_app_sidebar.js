@@ -39,6 +39,22 @@ const adminAppSidebarRoutes = [
     path: '/app/stores-app',
     icon: 'StoreIcon',
     name: 'Quản lý cửa hàng'
+  },
+  {
+    path: '/app/orders-app',
+    icon: 'TruckIcon',
+    name: 'Quản lý đơn hàng'
+  },
+  {
+    path: '/app/manage-review',
+    icon: 'StarIcon',
+    name: 'Quản lý đánh giá',
+  },
+  {
+    path: '/app/analytics',
+    icon: 'HomeIcon',
+    name: 'Thống kê xu hướng'
+
   }
 ];
 export default adminAppSidebarRoutes;

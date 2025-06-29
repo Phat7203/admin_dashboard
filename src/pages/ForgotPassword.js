@@ -27,7 +27,7 @@ function ForgotPassword() {
           <main className="flex items-center justify-center p-6 sm:p-12 md:w-1/2">
             <div className="w-full">
               <h1 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">
-                Forgot password
+                Quên mật khẩu
               </h1>
 
               <Label>
@@ -36,7 +36,7 @@ function ForgotPassword() {
               </Label>
 
               <Button tag={Link} to="/login" block className="mt-4">
-                Recover password
+                Khôi phục mật khẩu
               </Button>
             </div>
           </main>

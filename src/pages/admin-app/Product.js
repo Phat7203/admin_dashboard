@@ -60,8 +60,8 @@ const AdminProductModeration = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [activeTab, setActiveTab] = useState("all"); // all, safe, unsafe, unchecked, pending
-  const [statusFilter, setStatusFilter] = useState(""); // onwait, isActive
+  const [activeTab, setActiveTab] = useState("all"); // all, safe, unsafe, unchecked, pending, declined
+  const [statusFilter, setStatusFilter] = useState(""); // onwait, available, outofstock, declined
 
   // Pagination
   const [resultsPerPage, setResultsPerPage] = useState(20);
@@ -82,11 +82,11 @@ const AdminProductModeration = () => {
         setAllProducts(res.data);
         return res.data;
       } else {
-        console.error("Failed to fetch products:", res);
+        console.error("Không thể tải danh sách sản phẩm:", res);
         return [];
       }
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Lỗi khi tải sản phẩm:", error);
       return [];
     }
   };
@@ -120,6 +120,9 @@ const AdminProductModeration = () => {
           break;
         case "pending":
           filteredProducts = filteredProducts.filter(p => p.status === "onwait");
+          break;
+        case "declined":
+          filteredProducts = filteredProducts.filter(p => p.status === "declined");
           break;
       }
     }
@@ -181,6 +184,7 @@ const AdminProductModeration = () => {
       unsafe: allProducts.filter(p => p.imageModerationStatus === 'unsafe').length,
       unchecked: allProducts.filter(p => p.imageModerationStatus === 'unchecked').length,
       pending: allProducts.filter(p => p.status === 'onwait').length,
+      declined: allProducts.filter(p => p.status === 'declined').length,
     };
   };
 
@@ -221,13 +225,19 @@ const AdminProductModeration = () => {
         setIsApprovalModalOpen(false);
         setApprovalNote("");
         
-        alert(`Product ${newStatus === 'isActive' ? 'approved' : 'rejected'} successfully!`);
+        const statusText = {
+          'available': 'đã được phê duyệt và hiển thị',
+          'declined': 'đã bị từ chối',
+          'outofstock': 'đã được đánh dấu hết hàng'
+        };
+        
+        alert(`Sản phẩm ${statusText[newStatus] || 'đã được cập nhật'} thành công!`);
       } else {
-        alert('Failed to update product status');
+        alert('Không thể cập nhật trạng thái sản phẩm');
       }
     } catch (error) {
-      console.error("Error updating product status:", error);
-      alert('Error updating product status');
+      console.error("Lỗi khi cập nhật trạng thái sản phẩm:", error);
+      alert('Lỗi khi cập nhật trạng thái sản phẩm');
     } finally {
       setIsProcessing(false);
     }
@@ -258,11 +268,12 @@ const AdminProductModeration = () => {
           }));
         }
         
-        alert('Image moderation status updated successfully!');
+        alert('Trạng thái kiểm duyệt hình ảnh đã được cập nhật thành công!');
+        setIsApprovalModalOpen(false);
       }
     } catch (error) {
-      console.error("Error updating image moderation:", error);
-      alert('Error updating image moderation status');
+      console.error("Lỗi khi cập nhật kiểm duyệt hình ảnh:", error);
+      alert('Lỗi khi cập nhật trạng thái kiểm duyệt hình ảnh');
     }
   };
 
@@ -292,11 +303,13 @@ const AdminProductModeration = () => {
   const getStatusInfo = (status) => {
     switch (status) {
       case 'available':
-        return { text: 'Available', type: 'success', icon: Check };
+        return { text: 'Có sẵn', type: 'success', icon: Check };
       case 'outofstock':
-        return { text: 'Out of Stock', type: 'danger', icon: Check };
+        return { text: 'Hết hàng', type: 'warning', icon: AlertTriangle };
       case 'onwait':
-        return { text: 'Pending Review', type: 'warning', icon: Clock };
+        return { text: 'Chờ phê duyệt', type: 'warning', icon: Clock };
+      case 'declined':
+        return { text: 'Đã từ chối', type: 'danger', icon: X };
       default:
         return { text: status, type: 'neutral', icon: AlertTriangle };
     }
@@ -305,11 +318,11 @@ const AdminProductModeration = () => {
   const getImageModerationInfo = (status) => {
     switch (status) {
       case 'safe':
-        return { text: 'Safe', type: 'success', icon: Check, color: 'text-green-600' };
+        return { text: 'An toàn', type: 'success', icon: Check, color: 'text-green-600' };
       case 'unsafe':
-        return { text: 'Unsafe', type: 'danger', icon: AlertTriangle, color: 'text-red-600' };
+        return { text: 'Không an toàn', type: 'danger', icon: AlertTriangle, color: 'text-red-600' };
       case 'unchecked':
-        return { text: 'Unchecked', type: 'neutral', icon: Clock, color: 'text-gray-600' };
+        return { text: 'Chưa kiểm tra', type: 'neutral', icon: Clock, color: 'text-gray-600' };
       default:
         return { text: status, type: 'neutral', icon: AlertTriangle, color: 'text-gray-600' };
     }
@@ -326,9 +339,9 @@ const AdminProductModeration = () => {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Products
+            Quay lại danh sách sản phẩm
           </Button>
-          <PageTitle>Product Details</PageTitle>
+          <PageTitle>Chi tiết sản phẩm</PageTitle>
         </div>
 
         <ProductDetail
@@ -344,7 +357,7 @@ const AdminProductModeration = () => {
         <Modal isOpen={isApprovalModalOpen} onClose={closeApprovalModal}>
           <ModalHeader className="flex items-center">
             <Check className="w-6 h-6 mr-3" />
-            Review Product: {selectedProduct?.productName}
+            Đánh giá sản phẩm: {selectedProduct?.productName}
           </ModalHeader>
           <ModalBody>
             {selectedProduct && (
@@ -353,26 +366,26 @@ const AdminProductModeration = () => {
                 <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded">
                   <img 
                     src={selectedProduct.productImages?.[0]} 
-                    alt="Product" 
+                    alt="Sản phẩm" 
                     className="w-16 h-16 object-cover rounded"
                   />
                   <div>
                     <h4 className="font-semibold">{selectedProduct.productName}</h4>
-                    <p className="text-sm text-gray-600">Store: {selectedProduct.storeId?.name}</p>
-                    <p className="text-sm text-gray-600">Price: ${selectedProduct.basePrice}</p>
+                    <p className="text-sm text-gray-600">Cửa hàng: {selectedProduct.storeId?.name}</p>
+                    <p className="text-sm text-gray-600">Giá: {selectedProduct.basePrice}đ</p>
                   </div>
                 </div>
 
                 {/* Current Status */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Current Product Status</label>
+                    <label className="block text-sm font-medium mb-2">Trạng thái sản phẩm hiện tại</label>
                     <Badge type={getStatusInfo(selectedProduct.status).type}>
                       {getStatusInfo(selectedProduct.status).text}
                     </Badge>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Image Moderation Status</label>
+                    <label className="block text-sm font-medium mb-2">Trạng thái kiểm duyệt hình ảnh</label>
                     <Badge type={getImageModerationInfo(selectedProduct.imageModerationStatus).type}>
                       {getImageModerationInfo(selectedProduct.imageModerationStatus).text}
                     </Badge>
@@ -382,7 +395,7 @@ const AdminProductModeration = () => {
                 {/* Moderation Report */}
                 {selectedProduct.imageModerationNote && (
                   <div>
-                    <label className="block text-sm font-medium mb-2">Current Moderation Report</label>
+                    <label className="block text-sm font-medium mb-2">Báo cáo kiểm duyệt hiện tại</label>
                     <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded text-sm">
                       {selectedProduct.imageModerationNote}
                     </div>
@@ -392,11 +405,11 @@ const AdminProductModeration = () => {
                 {/* Admin Note */}
                 <div>
                   <Label>
-                    <span className="text-sm font-medium">Admin Review Note (Optional)</span>
+                    <span className="text-sm font-medium">Ghi chú của quản trị viên (Tùy chọn)</span>
                     <Textarea
                       className="mt-1"
                       rows={3}
-                      placeholder="Add a note about your decision..."
+                      placeholder="Thêm ghi chú về quyết định của bạn..."
                       value={approvalNote}
                       onChange={(e) => setApprovalNote(e.target.value)}
                     />
@@ -405,11 +418,11 @@ const AdminProductModeration = () => {
 
                 {/* Decision Summary */}
                 <div className="p-4 bg-blue-50 dark:bg-blue-900 rounded">
-                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Review Options:</h4>
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Tùy chọn đánh giá:</h4>
                   <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• <strong>Approve:</strong> Product will be set to "Active" and visible to customers</li>
-                    <li>• <strong>Reject:</strong> Product will remain inactive and store owner will be notified</li>
-                    <li>• Image moderation status can be updated separately in the detail view</li>
+                    <li>• <strong>Phê duyệt:</strong> Sản phẩm sẽ được đặt thành "Có sẵn" và hiển thị cho khách hàng</li>
+                    <li>• <strong>Từ chối:</strong> Sản phẩm sẽ được đánh dấu là đã từ chối và thông báo cho chủ cửa hàng</li>
+                    <li>• Trạng thái kiểm duyệt hình ảnh có thể được cập nhật riêng trong chế độ xem chi tiết</li>
                   </ul>
                 </div>
               </div>
@@ -418,17 +431,17 @@ const AdminProductModeration = () => {
           <ModalFooter>
             <div className="flex justify-between w-full">
               <Button layout="outline" onClick={closeApprovalModal} disabled={isProcessing}>
-                Cancel
+                Hủy
               </Button>
               
               <div className="flex space-x-2">
                 <Button
-                  onClick={() => handleProductApproval(selectedProduct._id, 'outofstock', approvalNote)}
+                  onClick={() => handleProductApproval(selectedProduct._id, 'declined', approvalNote)}
                   disabled={isProcessing}
                   className="bg-red-500 hover:bg-red-600 flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />
-                  {isProcessing ? 'Processing...' : 'Reject Product'}
+                  {isProcessing ? 'Đang xử lý...' : 'Từ chối sản phẩm'}
                 </Button>
                 <Button
                   onClick={() => handleProductApproval(selectedProduct._id, 'available', approvalNote)}
@@ -436,7 +449,7 @@ const AdminProductModeration = () => {
                   className="bg-green-500 hover:bg-green-600 flex items-center gap-2"
                 >
                   <Check className="w-4 h-4" />
-                  {isProcessing ? 'Processing...' : 'Approve Product'}
+                  {isProcessing ? 'Đang xử lý...' : 'Phê duyệt sản phẩm'}
                 </Button>
               </div>
             </div>
@@ -448,19 +461,7 @@ const AdminProductModeration = () => {
 
   return (
     <div>
-      <PageTitle>Product Moderation</PageTitle>
-
-      {/* Breadcrumb */}
-      <div className="flex text-gray-800 dark:text-gray-300">
-        <div className="flex items-center text-purple-600">
-          <Home className="w-5 h-5" />
-          <NavLink exact to="/admin/dashboard" className="mx-2">
-            Dashboard
-          </NavLink>
-        </div>
-        {">"}
-        <p className="mx-2">Product Moderation</p>
-      </div>
+      <PageTitle>Kiểm duyệt sản phẩm</PageTitle>
 
       {/* Search and Quick Stats */}
       <Card className="mt-5 mb-5 shadow-md">
@@ -473,7 +474,7 @@ const AdminProductModeration = () => {
               </div>
               <Input
                 className="pl-10"
-                placeholder="Search products, stores, notes..."
+                placeholder="Tìm kiếm sản phẩm, cửa hàng, ghi chú..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -483,15 +484,19 @@ const AdminProductModeration = () => {
             <div className="flex gap-4 text-sm">
               <div className="text-center">
                 <p className="font-semibold text-red-600">{tabCounts.unsafe}</p>
-                <p className="text-gray-500">Unsafe</p>
+                <p className="text-gray-500">Không an toàn</p>
               </div>
               <div className="text-center">
                 <p className="font-semibold text-gray-600">{tabCounts.unchecked}</p>
-                <p className="text-gray-500">Unchecked</p>
+                <p className="text-gray-500">Chưa kiểm tra</p>
               </div>
               <div className="text-center">
                 <p className="font-semibold text-yellow-600">{tabCounts.pending}</p>
-                <p className="text-gray-500">Pending</p>
+                <p className="text-gray-500">Chờ phê duyệt</p>
+              </div>
+              <div className="text-center">
+                <p className="font-semibold text-red-600">{tabCounts.declined}</p>
+                <p className="text-gray-500">Đã từ chối</p>
               </div>
             </div>
           </div>
@@ -510,7 +515,7 @@ const AdminProductModeration = () => {
               }`}
               onClick={() => setActiveTab("all")}
             >
-              <span>All Products</span>
+              <span>Tất cả sản phẩm</span>
               <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
                 {tabCounts.all}
               </span>
@@ -525,7 +530,7 @@ const AdminProductModeration = () => {
               onClick={() => setActiveTab("unsafe")}
             >
               <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span>Unsafe Images</span>
+              <span>Hình ảnh không an toàn</span>
               <span className="bg-red-200 dark:bg-red-600 text-red-700 dark:text-red-300 px-2 py-1 rounded-full text-xs">
                 {tabCounts.unsafe}
               </span>
@@ -540,7 +545,7 @@ const AdminProductModeration = () => {
               onClick={() => setActiveTab("unchecked")}
             >
               <Clock className="w-4 h-4 text-gray-500" />
-              <span>Unchecked</span>
+              <span>Chưa kiểm tra</span>
               <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
                 {tabCounts.unchecked}
               </span>
@@ -555,7 +560,7 @@ const AdminProductModeration = () => {
               onClick={() => setActiveTab("safe")}
             >
               <Check className="w-4 h-4 text-green-500" />
-              <span>Safe Images</span>
+              <span>Hình ảnh an toàn</span>
               <span className="bg-green-200 dark:bg-green-600 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs">
                 {tabCounts.safe}
               </span>
@@ -570,9 +575,24 @@ const AdminProductModeration = () => {
               onClick={() => setActiveTab("pending")}
             >
               <Clock className="w-4 h-4 text-yellow-500" />
-              <span>Pending Approval</span>
+              <span>Chờ phê duyệt</span>
               <span className="bg-yellow-200 dark:bg-yellow-600 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded-full text-xs">
                 {tabCounts.pending}
+              </span>
+            </button>
+
+            <button
+              className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap flex items-center gap-2 ${
+                activeTab === "declined"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              }`}
+              onClick={() => setActiveTab("declined")}
+            >
+              <X className="w-4 h-4 text-red-500" />
+              <span>Đã từ chối</span>
+              <span className="bg-red-200 dark:bg-red-600 text-red-700 dark:text-red-300 px-2 py-1 rounded-full text-xs">
+                {tabCounts.declined}
               </span>
             </button>
           </div>
@@ -585,7 +605,7 @@ const AdminProductModeration = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-wrap gap-3">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {totalResults} products found
+                Tìm thấy {totalResults} sản phẩm
               </p>
 
               {/* Sort Dropdown */}
@@ -595,10 +615,10 @@ const AdminProductModeration = () => {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                 >
-                  <option value="moderation_priority">Moderation Priority</option>
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="name_asc">Name A-Z</option>
+                  <option value="moderation_priority">Ưu tiên kiểm duyệt</option>
+                  <option value="newest">Mới nhất</option>
+                  <option value="oldest">Cũ nhất</option>
+                  <option value="name_asc">Tên A-Z</option>
                 </Select>
               </Label>
 
@@ -609,9 +629,11 @@ const AdminProductModeration = () => {
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="">All Status</option>
-                  <option value="onwait">Pending Review</option>
-                  <option value="available">Active</option>
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="onwait">Chờ phê duyệt</option>
+                  <option value="available">Có sẵn</option>
+                  <option value="outofstock">Hết hàng</option>
+                  <option value="declined">Đã từ chối</option>
                 </Select>
               </Label>
 
@@ -622,16 +644,16 @@ const AdminProductModeration = () => {
                   value={resultsPerPage}
                   onChange={(e) => setResultsPerPage(parseInt(e.target.value))}
                 >
-                  <option value={20}>20 per page</option>
-                  <option value={50}>50 per page</option>
-                  <option value={100}>100 per page</option>
+                  <option value={20}>20 trên trang</option>
+                  <option value={50}>50 trên trang</option>
+                  <option value={100}>100 trên trang</option>
                 </Select>
               </Label>
             </div>
 
             <Button
               onClick={() => setView(view === "list" ? "grid" : "list")}
-              aria-label="Toggle View"
+              aria-label="Chuyển đổi chế độ xem"
               className="flex items-center gap-2"
             >
               {view === "list" ? <Grid3X3 className="w-4 h-4" /> : <List className="w-4 h-4" />}
@@ -646,13 +668,13 @@ const AdminProductModeration = () => {
           <Table>
             <TableHeader>
               <tr>
-                <TableCell>Product</TableCell>
-                <TableCell>Store</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Image Status</TableCell>
-                <TableCell>Moderation Report</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell>Sản phẩm</TableCell>
+                <TableCell>Cửa hàng</TableCell>
+                <TableCell>Trạng thái</TableCell>
+                <TableCell>Trạng thái hình ảnh</TableCell>
+                <TableCell>Báo cáo kiểm duyệt</TableCell>
+                <TableCell>Ngày tạo</TableCell>
+                <TableCell>Hành động</TableCell>
               </tr>
             </TableHeader>
             <TableBody>
@@ -666,19 +688,19 @@ const AdminProductModeration = () => {
                         <Avatar
                           className="hidden mr-4 md:block"
                           src={product.productImages?.[0]}
-                          alt="Product image"
+                          alt="Hình ảnh sản phẩm"
                         />
                         <div>
                           <p className="font-semibold">{product.productName}</p>
                           <p className="text-xs text-gray-500">
-                            ${product.basePrice}
+                            {product.basePrice}đ
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p className="font-medium">{product.storeId?.storeName || 'Unknown Store'}</p>
+                        <p className="font-medium">{product.storeId?.name || 'Cửa hàng không xác định'}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -712,19 +734,19 @@ const AdminProductModeration = () => {
                             {product.imageModerationNote}
                           </p>
                         ) : (
-                          <span className="text-gray-400">No report</span>
+                          <span className="text-gray-400">Không có báo cáo</span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {new Date(product.createdAt).toLocaleDateString()}
+                      {new Date(product.createdAt).toLocaleDateString('vi-VN')}
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button
                           size="small"
                           onClick={() => openDetailView(product)}
-                          aria-label="View Details"
+                          aria-label="Xem chi tiết"
                           className="flex items-center gap-1"
                         >
                           <Eye className="w-4 h-4" />
@@ -733,7 +755,7 @@ const AdminProductModeration = () => {
                           <Button
                             size="small"
                             onClick={() => openApprovalModal(product)}
-                            aria-label="Review"
+                            aria-label="Đánh giá"
                             className="flex items-center gap-1"
                           >
                             <Check className="w-4 h-4" />
@@ -750,7 +772,7 @@ const AdminProductModeration = () => {
             <Pagination
               totalResults={totalResults}
               resultsPerPage={resultsPerPage}
-              label="Table navigation"
+              label="Điều hướng bảng"
               onChange={(p) => setPage(p)}
             />
           </TableFooter>
@@ -776,7 +798,7 @@ const AdminProductModeration = () => {
                   <img
                     className="object-cover w-full h-48"
                     src={product.productImages?.[0]}
-                    alt="product"
+                    alt="sản phẩm"
                   />
                   <CardBody>
                     <div className="mb-3">
@@ -784,7 +806,7 @@ const AdminProductModeration = () => {
                         {product.productName}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {product.store?.storeName || 'Unknown Store'}
+                        {product.storeId?.storeName || 'Cửa hàng không xác định'}
                       </p>
                     </div>
 
@@ -810,7 +832,7 @@ const AdminProductModeration = () => {
                     </div>
 
                     <p className="mb-2 text-purple-500 font-bold">
-                      ${product.basePrice}
+                      {product.basePrice}đ
                     </p>
 
                     {/* Moderation Note */}
@@ -838,7 +860,7 @@ const AdminProductModeration = () => {
                           className="flex items-center gap-1"
                         >
                           <Check className="w-4 h-4" />
-                          Review
+                          Đánh giá
                         </Button>
                       )}
                     </div>
@@ -851,7 +873,7 @@ const AdminProductModeration = () => {
           <Pagination
             totalResults={totalResults}
             resultsPerPage={resultsPerPage}
-            label="Grid navigation"
+            label="Điều hướng lưới"
             onChange={(p) => setPage(p)}
           />
         </>
@@ -861,7 +883,7 @@ const AdminProductModeration = () => {
       <Modal isOpen={isApprovalModalOpen} onClose={closeApprovalModal}>
         <ModalHeader className="flex items-center">
           <Check className="w-6 h-6 mr-3" />
-          Review Product: {selectedProduct?.productName}
+          Đánh giá sản phẩm: {selectedProduct?.productName}
         </ModalHeader>
         <ModalBody>
           {selectedProduct && (
@@ -870,26 +892,26 @@ const AdminProductModeration = () => {
               <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded">
                 <img 
                   src={selectedProduct.productImages?.[0]} 
-                  alt="Product" 
+                  alt="Sản phẩm" 
                   className="w-16 h-16 object-cover rounded"
                 />
                 <div>
                   <h4 className="font-semibold">{selectedProduct.productName}</h4>
-                  <p className="text-sm text-gray-600">Store: {selectedProduct.store?.storeName}</p>
-                  <p className="text-sm text-gray-600">Price: ${selectedProduct.basePrice}</p>
+                  <p className="text-sm text-gray-600">Cửa hàng: {selectedProduct.storeId?.storeName}</p>
+                  <p className="text-sm text-gray-600">Giá: {selectedProduct.basePrice}đ</p>
                 </div>
               </div>
 
               {/* Current Status */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Current Product Status</label>
+                  <label className="block text-sm font-medium mb-2">Trạng thái sản phẩm hiện tại</label>
                   <Badge type={getStatusInfo(selectedProduct.status).type}>
                     {getStatusInfo(selectedProduct.status).text}
                   </Badge>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Image Moderation Status</label>
+                  <label className="block text-sm font-medium mb-2">Trạng thái kiểm duyệt hình ảnh</label>
                   <Badge type={getImageModerationInfo(selectedProduct.imageModerationStatus).type}>
                     {getImageModerationInfo(selectedProduct.imageModerationStatus).text}
                   </Badge>
@@ -899,7 +921,7 @@ const AdminProductModeration = () => {
               {/* Moderation Report */}
               {selectedProduct.imageModerationNote && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Current Moderation Report</label>
+                  <label className="block text-sm font-medium mb-2">Báo cáo kiểm duyệt hiện tại</label>
                   <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded text-sm">
                     {selectedProduct.imageModerationNote}
                   </div>
@@ -909,11 +931,11 @@ const AdminProductModeration = () => {
               {/* Admin Note */}
               <div>
                 <Label>
-                  <span className="text-sm font-medium">Admin Review Note (Optional)</span>
+                  <span className="text-sm font-medium">Ghi chú của quản trị viên (Tùy chọn)</span>
                   <Textarea
                     className="mt-1"
                     rows={3}
-                    placeholder="Add a note about your decision..."
+                    placeholder="Thêm ghi chú về quyết định của bạn..."
                     value={approvalNote}
                     onChange={(e) => setApprovalNote(e.target.value)}
                   />
@@ -922,11 +944,11 @@ const AdminProductModeration = () => {
 
               {/* Decision Summary */}
               <div className="p-4 bg-blue-50 dark:bg-blue-900 rounded">
-                <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Review Options:</h4>
+                <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Tùy chọn đánh giá:</h4>
                 <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                  <li>• <strong>Approve:</strong> Product will be set to "Active" and visible to customers</li>
-                  <li>• <strong>Reject:</strong> Product will remain inactive and store owner will be notified</li>
-                  <li>• Image moderation status can be updated separately in the detail view</li>
+                  <li>• <strong>Phê duyệt:</strong> Sản phẩm sẽ được đặt thành "Có sẵn" và hiển thị cho khách hàng</li>
+                  <li>• <strong>Từ chối:</strong> Sản phẩm sẽ được đánh dấu là đã từ chối và thông báo cho chủ cửa hàng</li>
+                  <li>• Trạng thái kiểm duyệt hình ảnh có thể được cập nhật riêng trong chế độ xem chi tiết</li>
                 </ul>
               </div>
             </div>
@@ -935,25 +957,25 @@ const AdminProductModeration = () => {
         <ModalFooter>
           <div className="flex justify-between w-full">
             <Button layout="outline" onClick={closeApprovalModal} disabled={isProcessing}>
-              Cancel
+              Hủy
             </Button>
             
             <div className="flex space-x-2">
               <Button
-                onClick={() => handleProductApproval(selectedProduct._id, 'outofstock', approvalNote)}
+                onClick={() => handleProductApproval(selectedProduct._id, 'declined', approvalNote)}
                 disabled={isProcessing}
                 className="bg-red-500 hover:bg-red-600 flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
-                {isProcessing ? 'Processing...' : 'Reject Product'}
+                {isProcessing ? 'Đang xử lý...' : 'Từ chối sản phẩm'}
               </Button>
               <Button
-                onClick={() => handleProductApproval(selectedProduct._id, 'isActive', approvalNote)}
+                onClick={() => handleProductApproval(selectedProduct._id, 'available', approvalNote)}
                 disabled={isProcessing}
                 className="bg-green-500 hover:bg-green-600 flex items-center gap-2"
               >
                 <Check className="w-4 h-4" />
-                {isProcessing ? 'Processing...' : 'Approve Product'}
+                {isProcessing ? 'Đang xử lý...' : 'Phê duyệt sản phẩm'}
               </Button>
             </div>
           </div>
@@ -967,21 +989,21 @@ const AdminProductModeration = () => {
             <div className="text-center py-8">
               <Search className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
-                No products found
+                Không tìm thấy sản phẩm nào
               </p>
               <p className="text-gray-400 dark:text-gray-500 text-sm">
                 {searchTerm 
-                  ? `No products match your search "${searchTerm}"`
+                  ? `Không có sản phẩm nào khớp với từ khóa "${searchTerm}"`
                   : activeTab === "all"
-                  ? "No products available."
-                  : `No products with ${activeTab} status found.`}
+                  ? "Không có sản phẩm nào."
+                  : `Không tìm thấy sản phẩm nào với trạng thái ${activeTab}.`}
               </p>
               {searchTerm && (
                 <Button 
                   className="mt-4" 
                   onClick={() => setSearchTerm("")}
                 >
-                  Clear Search
+                  Xóa tìm kiếm
                 </Button>
               )}
             </div>
@@ -994,19 +1016,23 @@ const AdminProductModeration = () => {
         <Card className="mt-8">
           <CardBody>
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Quick Actions</h3>
+              <h3 className="text-lg font-semibold mb-2">Hành động nhanh</h3>
               <div className="flex justify-center space-x-4 text-sm">
                 <div className="flex items-center space-x-2">
                   <AlertTriangle className="w-4 h-4 text-red-500" />
-                  <span>Unsafe: {data.filter(p => p.imageModerationStatus === 'unsafe').length}</span>
+                  <span>Không an toàn: {data.filter(p => p.imageModerationStatus === 'unsafe').length}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-gray-500" />
-                  <span>Unchecked: {data.filter(p => p.imageModerationStatus === 'unchecked').length}</span>
+                  <span>Chưa kiểm tra: {data.filter(p => p.imageModerationStatus === 'unchecked').length}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-yellow-500" />
-                  <span>Pending Review: {data.filter(p => p.status === 'onwait').length}</span>
+                  <span>Chờ phê duyệt: {data.filter(p => p.status === 'onwait').length}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <X className="w-4 h-4 text-red-500" />
+                  <span>Đã từ chối: {data.filter(p => p.status === 'declined').length}</span>
                 </div>
               </div>
             </div>

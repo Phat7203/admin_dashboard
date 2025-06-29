@@ -8,6 +8,11 @@ const Rank = lazy(() => import("../pages/admin-app/Rank"));
 const Role = lazy(() => import("../pages/admin-app/Role"));
 const Store = lazy(() => import("../pages/admin-app/Store"));
 const Product = lazy(() => import("../pages/admin-app/Product"));
+const Order = lazy(() => import("../pages/admin-app/Order"));
+const OrderDetail = lazy(() => import("../pages/admin-app/OrderDetail"));
+const Profile = lazy(() => import("../pages/Profile"));
+const Review = lazy(() => import("../pages/admin-app/Review"))
+const Analytics = lazy(() => import("../pages/admin-app/Analytics"));
 const adminAppRoutes = [
   {
     path: "/dashboard",
@@ -50,6 +55,37 @@ const adminAppRoutes = [
     component: Product,
     name: 'Quản lý sản phẩm',
     icon: 'TruckIcon'
+  },
+  {
+    path: "/orders-app",
+    component: Order,
+    name: 'Quản lý đơn hàng',
+    icon: 'TruckIcon'
+  },
+  {
+    path: "/orders-app/:orderId",
+    component: OrderDetail,
+    name: 'Quản lý đơn hàng',
+    icon: 'TruckIcon'
+  },
+  {
+  path: "/manage-profile",
+  component: Profile,
+  name: 'Quản lý tài khoản',
+  icon: 'UserIcon'
+  },
+  {
+  path: "/manage-review",
+  component: Review,
+  name: 'Quản lý đánh giá',
+  icons: 'StartIcon'
+  },
+  {
+    path: "/analytics",
+    component: Analytics,
+    name: 'Thống kê xu hướng',
+    icon: 'HeartIcon',
+
   }
 ];
 

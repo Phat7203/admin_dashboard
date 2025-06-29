@@ -1,6 +1,7 @@
 import { lazy } from "react";
 
 // use lazy for better code splitting, a.k.a. load faster
+const Blank = lazy(() => import("../pages/Blank"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const StorePromotion = lazy(() => import("../pages/StorePromotion"));
 const Category = lazy(() => import("../pages/Category"));
@@ -11,6 +12,9 @@ const AddProduct = lazy(() => import("../pages/AddProduct"));
 const EditProduct = lazy(() => import("../pages/EditProduct"));
 const Orders = lazy(() => import("../pages/Orders"));
 const Profile = lazy(() => import("../pages/Profile"));
+const OrderDetailPage = lazy(() => import("../pages/OrderDetail"));
+const ManageStaff = lazy(() => import("../pages/ManageStaff"));
+const ManagePermission = lazy(() => import("../pages/ManagePermission"));
 const adminShopRoutes = [
   {
     path: "/dashboard-shop",
@@ -65,25 +69,50 @@ const adminShopRoutes = [
     path: "/edit-product/:id",
     component: EditProduct,
     icon: "HomeIcon",
+    name: "Edit Product",
     requiredPermissions: ["manage_product"],
   },
   {
     path: "/order",
     component: Orders,
     icon: "HomeIcon",
+    name: "Orders",
+    requiredPermissions: ["manage_order"],
+  },
+  {
+    path: "/order/:orderId",
+    component: OrderDetailPage,
+    name: "Order Detail",
+    icon: "StartIcon",
     requiredPermissions: ["manage_order"],
   },
   {
     path: "/manage-profile",
     component: Profile,
+    name: "Manage Profile",
     icon: "HomeIcon",
     requiredPermissions: ["profile_view"],
   },
   {
     path: "/manage-store",
     component: Profile,
+    name: "Manage Store",
     icon: "HomeIcon",
     requiredPermissions: ["manage_store"],
+  },
+  {
+    path: "/manage-staff",
+    component: ManageStaff,
+    icon: "GroupIcon",
+    name: "Manage Staff",
+    requiredPermissions: ["manage_staff"],
+  },
+  {
+    path: "/manage-permissions",
+    component: ManagePermission,
+    name: "Manage Permissions",
+    icon: "UserIcon",
+    requiredPermissions: ["manage_permissions"],
   },
 ];
 

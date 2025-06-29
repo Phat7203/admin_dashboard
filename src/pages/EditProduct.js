@@ -345,21 +345,6 @@ const EditProduct = () => {
     <div>
       <PageTitle>Edit Product</PageTitle>
 
-      {/* Breadcum */}
-      <Card className="flex text-gray-800 dark:text-gray-300">
-        <div className="flex items-center text-purple-600">
-          <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
-          <NavLink exact to="/app/dashboard-shop" className="mx-2">
-            Dashboard
-          </NavLink>
-          <NavLink exact to="/app/products" className="mx-2">
-            All product
-          </NavLink>
-        </div>
-        {">"}
-        <p className="mx-2">Edit Product</p>
-      </Card>
-
       <div className="w-full mt-8 grid gap-4 grid-col md:grid-cols-3">
         <Card className="row-span-2 md:col-span-2">
           <CardBody>

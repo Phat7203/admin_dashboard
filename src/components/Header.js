@@ -21,14 +21,15 @@ import {
 import { Link } from "react-router-dom";
 import response from "../utils/demo/profileData";
 import {useAuth} from "../context/AuthContext"
+import { useHistory } from "react-router-dom";
 function Header() {
   const { mode, toggleMode } = useContext(WindmillContext);
   const { toggleSidebar } = useContext(SidebarContext);
 
   const [isNotificationsMenuOpen, setIsNotificationsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const { logout } = useAuth();
-
+  const { user, logout } = useAuth();
+  const history = useHistory();
   function handleNotificationsClick() {
     setIsNotificationsMenuOpen(!isNotificationsMenuOpen);
   }
@@ -39,6 +40,7 @@ function Header() {
 
   const handleLogout = () => {
     logout();
+    history.push("/login");
   };
 
   return (
@@ -132,7 +134,7 @@ function Header() {
             >
               <Avatar
                 className="align-middle"
-                src={response.avatar}
+                src={user.avatar}
                 alt=""
                 aria-hidden="true"
               />

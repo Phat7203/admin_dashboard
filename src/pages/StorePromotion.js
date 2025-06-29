@@ -5,7 +5,7 @@ import {
   Trash2,
   Eye,
   Calendar,
-  Percent,
+  DollarSign,
   Users,
   Gift,
   Grid3X3,
@@ -17,14 +17,14 @@ import {
   Upload,
   Save,
 } from "lucide-react";
-import PromotionForm from "./PromotionForm"; // Bạn sẽ cần cập nhật component này
+import PromotionForm from "./PromotionForm";
 import {
   createStorePromotion,
   getPromotionsByStoreId,
   updateStorePromotion,
   deleteStorePromotion,
   updatePromotionStatus,
-} from "../api/StorePromotion"; // Cập nhật tên file import
+} from "../api/StorePromotion";
 import { useAuth } from "../context/AuthContext";
 import Icon from "../components/Icon";
 import { NavLink } from "react-router-dom/cjs/react-router-dom";
@@ -314,7 +314,7 @@ const StorePromotion = () => {
                 <div className="text-center text-white">
                   <Gift size={48} className="mx-auto mb-2 opacity-80" />
                   <p className="text-lg font-semibold">
-                    {promotion.discountRate}% OFF
+                    {formatCurrency(promotion.discount)}
                   </p>
                 </div>
               </div>
@@ -349,7 +349,7 @@ const StorePromotion = () => {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Giảm giá:</span>
                 <span className="font-medium text-green-600">
-                  {promotion.discountRate}%
+                  {formatCurrency(promotion.discount)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -358,28 +358,12 @@ const StorePromotion = () => {
                   {formatCurrency(promotion.minimumOrderValue)}
                 </span>
               </div>
-              {promotion.maxDiscount && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Giảm tối đa:</span>
-                  <span className="font-medium">
-                    {formatCurrency(promotion.maxDiscount)}
-                  </span>
-                </div>
-              )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Còn lại:</span>
                 <span className="font-medium">
                   {promotion.totalRemainingUses}/{promotion.quantityAvailable}
                 </span>
               </div>
-              {promotion.usageLimitPerUser && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Giới hạn/người:</span>
-                  <span className="font-medium">
-                    {promotion.usageLimitPerUser}
-                  </span>
-                </div>
-              )}
             </div>
 
             {/* Date Range */}
@@ -490,16 +474,13 @@ const StorePromotion = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    <div className="font-medium">{promotion.discountRate}%</div>
+                    <div className="font-medium text-green-600">
+                      {formatCurrency(promotion.discount)}
+                    </div>
                     <div className="text-xs text-gray-500">
                       Đơn tối thiểu:{" "}
                       {formatCurrency(promotion.minimumOrderValue)}
                     </div>
-                    {promotion.maxDiscount && (
-                      <div className="text-xs text-gray-500">
-                        Giảm tối đa: {formatCurrency(promotion.maxDiscount)}
-                      </div>
-                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -526,11 +507,6 @@ const StorePromotion = () => {
                     <div className="text-xs text-gray-500">
                       Tổng: {promotion.quantityAvailable}
                     </div>
-                    {promotion.usageLimitPerUser && (
-                      <div className="text-xs text-gray-500">
-                        Giới hạn/người: {promotion.usageLimitPerUser}
-                      </div>
-                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -589,18 +565,6 @@ const StorePromotion = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <PageTitle>Quản lý khuyến mãi cửa hàng</PageTitle>
-
-        {/* Breadcrumb */}
-        <div className="flex text-gray-800 dark:text-gray-300">
-          <div className="flex items-center text-purple-600">
-            <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
-            <NavLink exact to="/app/dashboard-shop" className="mx-2">
-              Dashboard
-            </NavLink>
-          </div>
-          {">"}
-          <p className="mx-2">Promotion</p>
-        </div>
 
         {/* Error Display */}
         {error && <ErrorDisplay />}
@@ -724,18 +688,17 @@ const StorePromotion = () => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
               <div className="p-3 bg-yellow-100 rounded-lg">
-                <Percent className="h-6 w-6 text-yellow-600" />
+                <DollarSign className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600">Giảm TB</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {promotions.length > 0
-                    ? Math.round(
-                        promotions.reduce((acc, p) => acc + p.discountRate, 0) /
+                    ? formatCurrency(
+                        promotions.reduce((acc, p) => acc + p.discount, 0) /
                           promotions.length
                       )
-                    : 0}
-                  %
+                    : formatCurrency(0)}
                 </p>
               </div>
             </div>
