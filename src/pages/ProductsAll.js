@@ -84,18 +84,6 @@ const ProductsAll = () => {
     <div>
       <PageTitle>All Products</PageTitle>
 
-      {/* Breadcum */}
-      <div className="flex text-gray-800 dark:text-gray-300">
-        <div className="flex items-center text-purple-600">
-          <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
-          <NavLink exact to="/app/dashboard" className="mx-2">
-            Dashboard
-          </NavLink>
-        </div>
-        {">"}
-        <p className="mx-2">All Products</p>
-      </div>
-
       {/* Sort */}
       <Card className="mt-5 mb-5 shadow-md">
         <CardBody>

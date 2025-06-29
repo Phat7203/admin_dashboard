@@ -69,7 +69,7 @@ const Products = () => {
       if (res.status === 200) {
         setCategories(res.data);
       } else {
-        console.error("Failed to fetch categories:", res);
+        console.log("Failed to fetch categories:", res);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -249,20 +249,7 @@ const Products = () => {
 
   return (
     <div>
-      <PageTitle>All Products</PageTitle>
-
-      {/* Breadcrumb */}
-      <div className="flex text-gray-800 dark:text-gray-300">
-        <div className="flex items-center text-purple-600">
-          <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
-          <NavLink exact to="/app/dashboard-shop" className="mx-2">
-            Dashboard
-          </NavLink>
-        </div>
-        {">"}
-        <p className="mx-2">All Products</p>
-      </div>
-
+      <PageTitle>Tất cả</PageTitle>
       {/* Status Tabs */}
       <Card className="mt-5 mb-5 shadow-md">
         <CardBody>
@@ -276,7 +263,7 @@ const Products = () => {
               onClick={() => handleTabChange("all")}
             >
               <div className="flex items-center gap-2">
-                <span>All Products</span>
+                <span>Tất cả sản phẩm</span>
                 <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
                   {tabCounts.all}
                 </span>
@@ -291,7 +278,7 @@ const Products = () => {
               onClick={() => handleTabChange("available")}
             >
               <div className="flex items-center gap-2">
-                <span>Available</span>
+                <span>Có sẵn</span>
                 <span className="bg-green-200 dark:bg-green-600 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs">
                   {tabCounts.available}
                 </span>
@@ -306,7 +293,7 @@ const Products = () => {
               onClick={() => handleTabChange("outofstock")}
             >
               <div className="flex items-center gap-2">
-                <span>Out of Stock</span>
+                <span>Hết hàng</span>
                 <span className="bg-red-200 dark:bg-red-600 text-red-700 dark:text-red-300 px-2 py-1 rounded-full text-xs">
                   {tabCounts.outofstock}
                 </span>
@@ -321,7 +308,7 @@ const Products = () => {
               onClick={() => handleTabChange("onwait")}
             >
               <div className="flex items-center gap-2">
-                <span>Pending Approval</span>
+                <span>Chờ duyệt</span>
                 <span className="bg-yellow-200 dark:bg-yellow-600 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded-full text-xs">
                   {tabCounts.onwait}
                 </span>
@@ -337,10 +324,10 @@ const Products = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-wrap gap-3">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {activeTab === "all" ? "All Products" : 
-                 activeTab === "available" ? "Available Products" :
-                 activeTab === "outofstock" ? "Out of Stock Products" :
-                 "Pending Approval Products"} ({totalResults} results)
+                {activeTab === "all" ? "Tất cả sản phẩm" : 
+                 activeTab === "available" ? "Sản phẩm có sẵn" :
+                 activeTab === "outofstock" ? "sản phẩm hết hàng" :
+                 "Sản phẩm chờ duyệt"} ({totalResults} kết quả)
               </p>
 
               {/* Sort Dropdown */}
@@ -350,11 +337,11 @@ const Products = () => {
                   value={sortBy}
                   onChange={handleSortChange}
                 >
-                  <option value="">Sort by</option>
-                  <option value="bestselling">Best Selling</option>
-                  <option value="newest">Newest</option>
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
+                  <option value="">Sắp xếp theo</option>
+                  <option value="bestselling">Bán chạy</option>
+                  <option value="newest">Mới nhất</option>
+                  <option value="price_asc">Giá: Thấp tới cao</option>
+                  <option value="price_desc">Giá: Cao đến thấp</option>
                 </Select>
               </Label>
 
@@ -365,7 +352,7 @@ const Products = () => {
                   value={filterCategory}
                   onChange={handleCategoryFilterChange}
                 >
-                  <option value="">All Categories</option>
+                  <option value="">Tất cả doanh mục</option>
                   {categories.map((category) => (
                     <option key={category._id} value={category._id}>
                       {category.name}
@@ -382,10 +369,10 @@ const Products = () => {
                     value={resultsPerPage}
                     onChange={handleResultsPerPageChange}
                   >
-                    <option value={10}>10 per page</option>
-                    <option value={20}>20 per page</option>
-                    <option value={50}>50 per page</option>
-                    <option value={100}>100 per page</option>
+                    <option value={10}>10 mỗi trang</option>
+                    <option value={20}>20 mỗi trang</option>
+                    <option value={50}>50 mỗi trang</option>
+                    <option value={100}>100 mỗi trang</option>
                   </Select>
                 </div>
               </Label>

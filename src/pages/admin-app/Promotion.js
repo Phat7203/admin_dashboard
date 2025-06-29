@@ -415,7 +415,7 @@ const PromotionManagement = () => {
               className="flex items-center space-x-2"
             >
               <AddIcon className="w-4 h-4" />
-              <span>Thêm danh mục</span>
+              <span>Thêm khuyến mãi</span>
             </Button>
           </div>
         </CardBody>
@@ -512,7 +512,7 @@ const PromotionManagement = () => {
                           >
                             <EditIcon className="w-4 h-4" />
                           </Button>
-                          {activeTab == "upcoming" && (
+                          {activeTab === "upcoming" && (
                             <Button
                             size="small"
                             layout="outline"

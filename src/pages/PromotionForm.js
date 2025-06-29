@@ -13,11 +13,9 @@ const PromotionForm = ({
   const [formData, setFormData] = useState({
     promotionName: '',
     promotionDetails: '',
-    discountRate: '',
+    discount: '',
     minimumOrderValue: '',
-    maxDiscount: '',
     quantityAvailable: '',
-    usageLimitPerUser: '',
     startDate: '',
     endDate: '',
     isActive: true,
@@ -42,11 +40,9 @@ const PromotionForm = ({
       setFormData({
         promotionName: editingPromotion.promotionName || '',
         promotionDetails: editingPromotion.promotionDetails || '',
-        discountRate: editingPromotion.discountRate || '',
+        discount: editingPromotion.discount || '',
         minimumOrderValue: editingPromotion.minimumOrderValue || '',
-        maxDiscount: editingPromotion.maxDiscount || '',
         quantityAvailable: editingPromotion.quantityAvailable || '',
-        usageLimitPerUser: editingPromotion.usageLimitPerUser || '',
         startDate: editingPromotion.startDate ? 
           new Date(editingPromotion.startDate).toISOString().split('T')[0] : '',
         endDate: editingPromotion.endDate ? 
@@ -80,11 +76,9 @@ const PromotionForm = ({
     setFormData({
       promotionName: '',
       promotionDetails: '',
-      discountRate: '',
+      discount: '',
       minimumOrderValue: '',
-      maxDiscount: '',
       quantityAvailable: '',
-      usageLimitPerUser: '',
       startDate: '',
       endDate: '',
       isActive: true,
@@ -153,7 +147,7 @@ const PromotionForm = ({
     }
   };
 
-  // Validation function - cập nhật cho cả add và edit
+  // Validation function - cập nhật cho model mới
   const validateForm = () => {
     const newErrors = {};
 
@@ -166,24 +160,16 @@ const PromotionForm = ({
       newErrors.promotionDetails = 'Mô tả khuyến mãi là bắt buộc';
     }
 
-    if (!formData.discountRate || formData.discountRate <= 0 || formData.discountRate > 100) {
-      newErrors.discountRate = 'Tỷ lệ giảm giá phải từ 1% đến 100%';
+    if (!formData.discount || formData.discount < 0) {
+      newErrors.discount = 'Giá trị giảm giá phải lớn hơn hoặc bằng 0';
     }
 
     if (!formData.minimumOrderValue || formData.minimumOrderValue < 0) {
       newErrors.minimumOrderValue = 'Giá trị đơn hàng tối thiểu không hợp lệ';
     }
 
-    if (formData.maxDiscount && formData.maxDiscount < 0) {
-      newErrors.maxDiscount = 'Giá trị giảm tối đa không hợp lệ';
-    }
-
     if (!formData.quantityAvailable || formData.quantityAvailable <= 0) {
       newErrors.quantityAvailable = 'Số lượng khả dụng phải lớn hơn 0';
-    }
-
-    if (formData.usageLimitPerUser && formData.usageLimitPerUser <= 0) {
-      newErrors.usageLimitPerUser = 'Giới hạn sử dụng mỗi người phải lớn hơn 0';
     }
 
     if (!formData.startDate) {
@@ -215,7 +201,7 @@ const PromotionForm = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission - cập nhật cho cả add và edit với Firebase upload
+  // Handle form submission - cập nhật cho model mới
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     
@@ -261,20 +247,18 @@ const PromotionForm = ({
         backgroundImageUrl = editingPromotion?.backgroundImage || null;
       }
 
-      // Prepare data for submission with image URLs
+      // Prepare data for submission với model mới
       const submissionData = {
         promotionName: formData.promotionName.trim(),
         promotionDetails: formData.promotionDetails.trim(),
-        discountRate: parseFloat(formData.discountRate),
+        discount: parseFloat(formData.discount),
         minimumOrderValue: parseFloat(formData.minimumOrderValue),
-        maxDiscount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : null,
         quantityAvailable: parseInt(formData.quantityAvailable),
-        usageLimitPerUser: formData.usageLimitPerUser ? parseInt(formData.usageLimitPerUser) : null,
         startDate: formData.startDate,
         endDate: formData.endDate,
         isActive: formData.isActive,
-        promotionImage: promotionImageUrl, // URL instead of File object
-        backgroundImage: backgroundImageUrl // URL instead of File object
+        promotionImage: promotionImageUrl,
+        backgroundImage: backgroundImageUrl
       };
 
       if (mode === 'add') {
@@ -426,28 +410,24 @@ const PromotionForm = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tỷ Lệ Giảm Giá (%) *
+                  Giá Trị Giảm Giá (VND) *
                 </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    name="discountRate"
-                    value={formData.discountRate}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="100"
-                    step="0.1"
-                    className={`w-full pl-3 pr-10 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.discountRate ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="10"
-                  />
-                  <Percent className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                </div>
-                {errors.discountRate && (
+                <input
+                  type="number"
+                  name="discount"
+                  value={formData.discount}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="1000"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.discount ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="10000"
+                />
+                {errors.discount && (
                   <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                     <AlertCircle className="h-4 w-4" />
-                    {errors.discountRate}
+                    {errors.discount}
                   </p>
                 )}
               </div>
@@ -476,31 +456,7 @@ const PromotionForm = ({
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Giảm Tối Đa (VND)
-                </label>
-                <input
-                  type="number"
-                  name="maxDiscount"
-                  value={formData.maxDiscount}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="1000"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.maxDiscount ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="50000 (Để trống nếu không giới hạn)"
-                />
-                {errors.maxDiscount && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" />
-                    {errors.maxDiscount}
-                  </p>
-                )}
-              </div>
-
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Số Lượng Khả Dụng *
                   {isEditMode && (
@@ -532,29 +488,6 @@ const PromotionForm = ({
                   <p className="mt-1 text-sm text-yellow-600 flex items-center gap-1">
                     <AlertCircle className="h-4 w-4" />
                     Cảnh báo: Giảm số lượng có thể ảnh hưởng đến khuyến mãi đang sử dụng
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Giới Hạn Sử Dụng Mỗi Người
-                </label>
-                <input
-                  type="number"
-                  name="usageLimitPerUser"
-                  value={formData.usageLimitPerUser}
-                  onChange={handleInputChange}
-                  min="1"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.usageLimitPerUser ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Để trống nếu không giới hạn"
-                />
-                {errors.usageLimitPerUser && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" />
-                    {errors.usageLimitPerUser}
                   </p>
                 )}
               </div>

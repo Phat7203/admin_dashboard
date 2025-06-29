@@ -1,39 +1,16 @@
 import { getIdToken } from "../middleware/getToken";
 import { api } from './AppApi';
 
-const getAllRankRule = async () => {
+export const getOrderByStoreidAndStatus = async (storeId, status) => {
     try {
         const idToken = await getIdToken();
-        const url = `/rankRule`;
+        const url = `/order/store/${storeId}/status/${status}`;
         const config = {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${idToken}`
             },
-        };
-        const res = await api(url, config);
-        return res.data;
-    } catch (error) {
-        if (error.response) {
-            return error.response;
-        } else {
-            throw error;
-        }
-    }
-}
-
-const addRankRule = async(data) => {
-    try {
-        const idToken = await getIdToken();
-        const url = `/rankRule`;
-        const config = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`
-            },
-            data: data,
         }
         const res = await api(url, config);
         return res;
@@ -45,36 +22,12 @@ const addRankRule = async(data) => {
         }
     }
 }
-
-const updateRankRule = async(id ,data) => {
+export const getDetailOrderByShop = async (orderId) => {
     try {
         const idToken = await getIdToken();
-        const url = `/rankRule/${id}`;
+        const url = `/order/getOrderDetailByShop/${orderId}`;
         const config = {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`
-            },
-            data: data,
-        }
-        const res = await api(url, config);
-        return res;
-    } catch (error) {
-        if (error.response) {
-            return error.response;
-        } else {
-            throw error;
-        }
-    }
-}
-
-const deleteRankRule = async(id) => {
-    try {
-        const idToken = await getIdToken();
-        const url = `/rankRule/${id}`;
-        const config = {
-            method: "DELETE",
+            method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${idToken}`
@@ -90,5 +43,45 @@ const deleteRankRule = async(id) => {
         }
     }
 }
-
-export {getAllRankRule, addRankRule, updateRankRule, deleteRankRule};
+export const getAllOrder = async (page, size) => {
+    try {
+        const idToken = await getIdToken();
+        const url = `/order/getAllOrder`;
+        const config = {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`
+            },
+        }
+        const res = await api(url, config);
+        return res;
+    } catch (error) {
+        if (error.response) {
+            return error.response;
+        } else {
+            throw error;
+        }
+    }
+}
+export const getOrderDetailByAdmin = async (orderId) => {
+    try {
+        const idToken = await getIdToken();
+        const url = `/order/getOrderDetailByAdmin/${orderId}`;
+        const config = {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`
+            },
+        }
+        const res = await api(url, config);
+        return res;
+    } catch (error) {
+        if (error.response) {
+            return error.response;
+        } else {
+            throw error;
+        }
+    }
+}

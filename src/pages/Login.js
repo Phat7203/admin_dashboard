@@ -46,7 +46,7 @@ function Login() {
           </div>
           <main className="flex items-center justify-center p-6 sm:p-12 md:w-1/2">
             <div className="w-full">
-              <h1 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Login</h1>
+              <h1 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Đăng Nhập</h1>
               {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
               <form onSubmit={handleLogin}>
                 <Label>
@@ -54,14 +54,14 @@ function Login() {
                   <Input
                     className="mt-1"
                     type="email"
-                    placeholder="john@doe.com"
+                    placeholder="user@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </Label>
 
                 <Label className="mt-4">
-                  <span>Password</span>
+                  <span>Mật Khẩu</span>
                   <Input
                     className="mt-1"
                     type="password"
@@ -72,27 +72,18 @@ function Login() {
                 </Label>
 
                 <Button className="mt-4" block type="submit">
-                  Log in
+                  Đăng nhập
                 </Button>
               </form>
 
               <hr className="my-8" />
-
-              <Button block layout="outline">
-                <GithubIcon className="w-4 h-4 mr-2" aria-hidden="true" />
-                Github
-              </Button>
-              <Button className="mt-4" block layout="outline">
-                <TwitterIcon className="w-4 h-4 mr-2" aria-hidden="true" />
-                Twitter
-              </Button>
 
               <p className="mt-4">
                 <Link
                   className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline"
                   to="/forgot-password"
                 >
-                  Forgot your password?
+                  Quên mật khẩu?
                 </Link>
               </p>
               <p className="mt-1">
@@ -100,7 +91,7 @@ function Login() {
                   className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline"
                   to="/create-account"
                 >
-                  Create account
+                  Tạo tài khoản
                 </Link>
               </p>
             </div>

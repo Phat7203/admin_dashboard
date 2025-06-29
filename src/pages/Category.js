@@ -19,9 +19,6 @@ import {
 import { getSubCategory } from "../api/SubCategory";
 import { uploadFile } from "../utils/fileUpload";
 import { useAuth } from "../context/AuthContext";
-import Icon from "../components/Icon";
-import { HomeIcon } from "../icons";
-import { NavLink } from "react-router-dom/cjs/react-router-dom.min";
 
 const Category = () => {
   const [categories, setCategories] = useState([]);
@@ -241,7 +238,6 @@ const Category = () => {
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
-      alert("Có lỗi xảy ra khi tải danh mục!");
     } finally {
       setLoading(false);
     }
@@ -259,7 +255,6 @@ const Category = () => {
       }
     } catch (error) {
       console.error("Error fetching subcategories:", error);
-      alert("Có lỗi xảy ra khi tải danh mục cha!");
     } finally {
       setLoadingSubCategories(false);
     }
@@ -289,20 +284,7 @@ const Category = () => {
       )}
 
       <PageTitle>Quản lý doanh mục</PageTitle>
-
-      {/* Breadcum */}
-
-      <div className="flex text-gray-800 dark:text-gray-300">
-        <div className="flex items-center text-purple-600">
-          <Icon className="w-5 h-5" aria-hidden="true" icon={HomeIcon} />
-          <NavLink exact to="/app/dashboard-shop" className="mx-2">
-            Dashboard
-          </NavLink>
-        </div>
-        {">"}
-        <p className="mx-2">Categories</p>
-      </div>
-
+      
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">

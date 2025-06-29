@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     console.log("AuthProvider mounted");
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (!mounted) return;
-
+      setLoading(true);
       if (firebaseUser) {
         // Gán tạm firebaseUser ngay lập tức
         setUser(firebaseUser);
@@ -27,9 +27,9 @@ export const AuthProvider = ({ children }) => {
           if (!mounted) return;
 
           if (userData.status === 200) {
-            const roleData = await getRoleById({
-              roleId: userData.data.userType,
-            });
+            const roleData = await getRoleById(
+              userData.data.userType,
+            );
             if (!mounted) return;
 
             if (roleData.status === 200) {

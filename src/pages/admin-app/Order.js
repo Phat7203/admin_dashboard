@@ -5,24 +5,17 @@ import {
   Eye,
   MapPin,
   Clock,
-  DollarSign,
-  User,
-  Phone,
   Calendar,
   Truck,
   CheckCircle,
   AlertCircle,
   XCircle,
-  Filter,
   Search,
-  ChevronDown,
-  ChevronRight,
   RefreshCw,
   Edit,
   Printer,
 } from "lucide-react";
-import { getOrderByStoreidAndStatus } from "../api/OrderApi";
-import { useAuth } from "../context/AuthContext";
+import { getAllOrder } from "../../api/OrderApi";
 
 // Order status configuration
 const orderStatuses = {
@@ -65,26 +58,12 @@ const orderStatuses = {
 };
 
 const Orders = () => {
-  const { user } = useAuth();
-  const [allOrders, setAllOrders] = useState([]); // Mảng chứa tất cả đơn hàng
+  const [allOrders, setAllOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState({
-    current: 0,
-    total: 0,
-  });
-
-  // Danh sách các status cần gọi API (bỏ 'all')
-  const statusesToLoad = [
-    "Pending",
-    "WaitingPickup",
-    "Shipping",
-    "Completed",
-    "Returned",
-    "Cancelled",
-  ];
+  const [sortBy, setSortBy] = useState("newest");
 
   // Lấy số lượng đơn hàng theo từng trạng thái từ allOrders
   const getOrderCounts = () => {
@@ -101,10 +80,33 @@ const Orders = () => {
 
   const orderCounts = getOrderCounts();
 
+  // Sắp xếp đơn hàng
+  const sortOrders = (orders, sortType) => {
+    const sortedOrders = [...orders];
+    
+    switch (sortType) {
+      case "newest":
+        return sortedOrders.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+      case "oldest":
+        return sortedOrders.sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+      case "price_desc":
+        return sortedOrders.sort((a, b) => (b.totalPrice || 0) - (a.totalPrice || 0));
+      case "price_asc":
+        return sortedOrders.sort((a, b) => (a.totalPrice || 0) - (b.totalPrice || 0));
+      default:
+        return sortedOrders;
+    }
+  };
+
   // Lọc đơn hàng theo tab và search từ allOrders
   useEffect(() => {
     let filtered = allOrders;
     console.log("allOrders:", allOrders);
+    
     // Lọc theo trạng thái
     if (activeTab !== "all") {
       filtered = filtered.filter((order) => order.status === activeTab);
@@ -114,77 +116,51 @@ const Orders = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         (order) =>
-          order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.phone.includes(searchTerm) ||
-          order._id.includes(searchTerm) ||
+          order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.phone?.includes(searchTerm) ||
+          order._id?.includes(searchTerm) ||
           order.ghnOrderCode?.includes(searchTerm)
       );
     }
 
+    // Sắp xếp
+    filtered = sortOrders(filtered, sortBy);
+
     setFilteredOrders(filtered);
-  }, [allOrders, activeTab, searchTerm]);
+  }, [allOrders, activeTab, searchTerm, sortBy]);
 
-  // Load tất cả đơn hàng từ tất cả các status
+  // Load tất cả đơn hàng sử dụng getAllOrder
   const loadAllOrders = async () => {
-    if (!user?.storeId) return;
-
     setIsLoading(true);
-    setLoadingProgress({ current: 0, total: statusesToLoad.length });
 
     try {
-      const allOrdersData = [];
+      console.log("Loading all orders...");
+      const response = await getAllOrder();
 
-      // Gọi API cho từng status một cách tuần tự để tránh quá tải
-      for (let i = 0; i < statusesToLoad.length; i++) {
-        const status = statusesToLoad[i];
-        setLoadingProgress({ current: i + 1, total: statusesToLoad.length });
+      if (response?.status === 200 && response?.data) {
+        // Sắp xếp theo thời gian tạo mới nhất
+        const sortedOrders = response.data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
 
-        try {
-          console.log(`Loading orders for status: ${status}`);
-          const response = await getOrderByStoreidAndStatus(
-            user.storeId,
-            status
-          );
-
-          if (response.status === 200 && response.data) {
-            // Thêm đơn hàng từ status này vào mảng tổng
-            allOrdersData.push(...response.data);
-            console.log(
-              `Loaded ${response.data.length} orders for status: ${status}`
-            );
-          } else {
-            console.warn(`No orders found for status: ${status}`);
-          }
-        } catch (statusError) {
-          console.error(
-            `Error loading orders for status ${status}:`,
-            statusError
-          );
-          // Tiếp tục với status tiếp theo ngay cả khi có lỗi
-        }
+        setAllOrders(sortedOrders);
+        console.log(`Total orders loaded: ${sortedOrders.length}`);
+      } else {
+        console.warn("No orders found or invalid response:", response);
+        setAllOrders([]);
       }
-
-      // Sắp xếp theo thời gian tạo mới nhất
-      allOrdersData.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-
-      setAllOrders(allOrdersData);
-      console.log(`Total orders loaded: ${allOrdersData.length}`);
     } catch (error) {
       console.error("Error loading all orders:", error);
+      setAllOrders([]);
     } finally {
       setIsLoading(false);
-      setLoadingProgress({ current: 0, total: 0 });
     }
   };
 
   // Load tất cả đơn hàng khi component mount
   useEffect(() => {
-    if (user?.storeId) {
-      loadAllOrders();
-    }
-  }, [user?.storeId]);
+    loadAllOrders();
+  }, []);
 
   // Format tiền
   const formatCurrency = (amount) => {
@@ -242,14 +218,19 @@ const Orders = () => {
     );
   };
 
-  // Handle tab change - chỉ thay đổi activeTab, không gọi API
+  // Handle tab change
   const handleTabChange = (status) => {
     setActiveTab(status);
   };
 
-  // Handle refresh - gọi lại tất cả API
+  // Handle refresh
   const handleRefresh = () => {
     loadAllOrders();
+  };
+
+  // Handle sort change
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
   };
 
   return (
@@ -341,8 +322,11 @@ const Orders = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <select className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Sắp xếp theo</option>
+                <select 
+                  className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={sortBy}
+                  onChange={handleSortChange}
+                >
                   <option value="newest">Mới nhất</option>
                   <option value="oldest">Cũ nhất</option>
                   <option value="price_desc">Giá trị cao nhất</option>
@@ -381,29 +365,9 @@ const Orders = () => {
         {isLoading && (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600 mb-2">
-              Đang tải đơn hàng từ tất cả trạng thái...
+            <p className="text-gray-600">
+              Đang tải tất cả đơn hàng...
             </p>
-            {loadingProgress.total > 0 && (
-              <div className="max-w-sm mx-auto">
-                <div className="flex justify-between text-sm text-gray-500 mb-1">
-                  <span>Tiến độ</span>
-                  <span>
-                    {loadingProgress.current}/{loadingProgress.total}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${
-                        (loadingProgress.current / loadingProgress.total) * 100
-                      }%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -467,7 +431,7 @@ const Orders = () => {
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <Link to={`/app/order/${order._id}`}>
+                        <Link to={`/app/orders-app/${order._id}`}>
                           <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                             <Eye className="w-5 h-5" />
                           </button>
@@ -492,7 +456,7 @@ const Orders = () => {
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Calendar className="w-4 h-4 mr-2" />
-                      <span>Dự kiến: {order.estimatedDate}</span>
+                      <span>Dự kiến: {order.estimatedDate || "N/A"}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Package className="w-4 h-4 mr-2" />

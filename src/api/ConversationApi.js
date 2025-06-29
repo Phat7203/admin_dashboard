@@ -1,19 +1,18 @@
-// src/api/storePromotionApi.js
-import { getIdToken } from "../midleware/getToken";
+// src/services/conversationAPI.js
+import { getIdToken } from "../middleware/getToken";
 import { api } from './AppApi';
 
-// Tạo mới một khuyến mãi
-export const createStorePromotion = async (promotionData) => {
+// Lấy danh sách conversations theo shop_id
+export const getConversations = async (shopId) => {
   try {
     const idToken = await getIdToken();
-    const url = `/storePromotion/`;  
+    const url = `/conversation/?shop_id=${shopId}`;
     const config = {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
-      },
-      data: promotionData
+      }
     };
     const res = await api(url, config);
     return res;
@@ -25,23 +24,22 @@ export const createStorePromotion = async (promotionData) => {
     }
   }
 };
-//Cập nhật trạng thái khuyến mãi
-export const updatePromotionStatus = async (promotionId, status) => {
+
+// Lấy conversation theo ID
+export const getConversationById = async (conversationId) => {
   try {
     const idToken = await getIdToken();
-    const url = `/storePromotion/status/${promotionId}`;
+    const url = `/conversation/${conversationId}`;
     const config = {
-      method: "PUT",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
-      },
-      data: {isActive: status }
+      }
     };
     const res = await api(url, config);
     return res;
-  }
-  catch (error) {
+  } catch (error) {
     if (error.response) {
       return error.response;
     } else {
@@ -49,17 +47,120 @@ export const updatePromotionStatus = async (promotionId, status) => {
     }
   }
 };
-export const updateStorePromotion = async (promotionId, promotionData) => {
+
+// Lấy messages của conversation
+export const getMessages = async (conversationId, params = {}) => {
   try {
     const idToken = await getIdToken();
-    const url = `/storePromotion/${promotionId}`;
+    const queryParams = new URLSearchParams({
+      page: params.page || 1,
+      limit: params.limit || 50,
+      ...params
+    }).toString();
+    const url = `/conversation/${conversationId}/messages?${queryParams}`;
+    const config = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      }
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Tạo conversation mới
+export const createConversation = async (conversationData) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/conversation`;
+    const config = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      },
+      data: conversationData
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Gửi message
+export const sendMessage = async (conversationId, messageData) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/conversation/${conversationId}/messages`;
+    const config = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      },
+      data: messageData
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Đánh dấu đã đọc
+export const markAsRead = async (conversationId, readerType) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/conversation/${conversationId}/read`;
     const config = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
       },
-      data: promotionData
+      data: {
+        reader_type: readerType
+      }
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Lấy conversations theo store ID (sử dụng trong component với user context)
+export const getConversationsByStore = async ({storeId}) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/conversation/getConversationsByStoreId/${storeId}`;
+    const config = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      }
     };
     const res = await api(url, config);
     return res;
@@ -71,117 +172,3 @@ export const updateStorePromotion = async (promotionId, promotionData) => {
     }
   }
 }
-// Xoá khuyến mãi theo ID
-export const deleteStorePromotion = async (promotionId) => {
-  try {
-    const idToken = await getIdToken();
-    const url = `/storePromotion/${promotionId}`;
-    const config = {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`
-      }
-    };
-    const res = await api(url, config);
-    return res;
-  } catch (error) {
-    if (error.response) {
-      return error.response;
-    } else {
-      throw error;
-    }
-  }
-};
-// Lấy danh sách khuyến mãi theo storeId
-export const getPromotionsByStoreId = async (storeId) => {
-  try {
-    const idToken = await getIdToken();
-    console.log("storeId", storeId);
-    const url = `/storePromotion/store/${storeId}`;
-    const config = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`
-      }
-    };
-    const res = await api(url, config);
-    return res;
-  } catch (error) {
-    if (error.response) {
-      return error.response;
-    } else {
-      throw error;
-    }
-  }
-};
-
-// Lấy tất cả khuyến mãi
-export const getAllStorePromotions = async () => {
-  try {
-    const idToken = await getIdToken();
-    const url = `/storePromotion/all`;
-    const config = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`
-      }
-    };
-    const res = await api(url, config);
-    return res;
-  } catch (error) {
-    if (error.response) {
-      return error.response;
-    } else {
-      throw error;
-    }
-  }
-};
-
-// Lấy danh sách khuyến mãi hiện tại
-export const getCurrentPromotions = async () => {
-  try {
-    const idToken = await getIdToken();
-    const url = `/storePromotion/current`;
-    const config = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`
-      }
-    };
-    const res = await api(url, config);
-    return res;
-  } catch (error) {
-    if (error.response) {
-      return error.response;
-    } else {
-      throw error;
-    }
-  }
-};
-
-// Kiểm tra khuyến mãi theo ID
-export const checkPromotionById = async (promotionId) => {
-  try {
-    const idToken = await getIdToken();
-    const url = `/storePromotion/check/${promotionId}`;
-    const config = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`
-      }
-    };
-    const res = await api(url, config);
-    return res;
-  } catch (error) {
-    if (error.response) {
-      return error.response;
-    } else {
-      throw error;
-    }
-  }
-};

@@ -1,167 +1,187 @@
+// src/api/storePromotionApi.js
 import { getIdToken } from "../middleware/getToken";
-import { api } from "./AppApi";
+import { api } from './AppApi';
 
-const addPromotion = async (data) => {
+// Tạo mới một khuyến mãi
+export const createStorePromotion = async (promotionData) => {
   try {
     const idToken = await getIdToken();
-    const url = "/promotion/addPromotion";
+    const url = `/storePromotion/`;  
     const config = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
       },
-      data: data,
+      data: promotionData
     };
-
     const res = await api(url, config);
     return res;
   } catch (error) {
     if (error.response) {
-      return error.response.data;
+      return error.response;
     } else {
       throw error;
     }
   }
 };
-
-const getAllPromotions = async () => {
+//Cập nhật trạng thái khuyến mãi
+export const updatePromotionStatus = async (promotionId, status) => {
   try {
     const idToken = await getIdToken();
-    const url = "/promotion/getAllPromotions";
-    const config = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`
-      },
-    };
-
-    const res = await api(url, config);
-    return res;
-  } catch (error) {
-    if (error.response) {
-      return error.response.data;
-    } else {
-      throw error;
-    }
-  }
-};
-
-const getPromotionById = async ({ id }) => {
-  try {
-    const idToken = await getIdToken();
-    const url = `/promotion/getPromotionById/${id}`;
-    const config = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`
-      },
-    };
-
-    const res = await api(url, config);
-    return res;
-  } catch (error) {
-    if (error.response) {
-      return error.response.data;
-    } else {
-      throw error;
-    }
-  }
-};
-
-const updatePromotion = async ({ id, data }) => {
-  try {
-    const idToken = await getIdToken();
-    const url = `/promotion/updatePromotion/${id}`;
+    const url = `/storePromotion/status/${promotionId}`;
     const config = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
       },
-      data: data,
+      data: {isActive: status }
     };
-
     const res = await api(url, config);
     return res;
-  } catch (error) {
+  }
+  catch (error) {
     if (error.response) {
-      return error.response.data;
+      return error.response;
     } else {
       throw error;
     }
   }
 };
-
-const deletePromotion = async ( id ) => {
+export const updateStorePromotion = async (promotionId, promotionData) => {
   try {
     const idToken = await getIdToken();
-    const url = `/promotion/deletePromotion/${id}`;
+    const url = `/storePromotion/${promotionId}`;
+    const config = {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      },
+      data: promotionData
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+}
+// Xoá khuyến mãi theo ID
+export const deleteStorePromotion = async (promotionId) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/storePromotion/${promotionId}`;
     const config = {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
-      },
+      }
     };
-
     const res = await api(url, config);
     return res;
   } catch (error) {
     if (error.response) {
-      return error.response.data;
+      return error.response;
     } else {
       throw error;
     }
   }
 };
-
-const getPromotionCurrent = async (userId) => {
+// Lấy danh sách khuyến mãi theo storeId
+export const getPromotionsByStoreId = async (storeId) => {
   try {
     const idToken = await getIdToken();
-    const url = `/promotion/getAvailablePromotionsForUser/userId=${userId}`;
+    console.log("storeId", storeId);
+    const url = `/storePromotion/store/${storeId}`;
     const config = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
-      },
+      }
     };
-
     const res = await api(url, config);
     return res;
   } catch (error) {
     if (error.response) {
-      return error.response.data;
+      return error.response;
     } else {
       throw error;
     }
   }
 };
 
-const checkPromotion = async ({ id }) => {
+// Lấy tất cả khuyến mãi
+export const getAllStorePromotions = async () => {
   try {
     const idToken = await getIdToken();
-    const url = `/promotion/checkPromotion/id=${id}`;
+    const url = `/storePromotion/all`;
     const config = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`
-      },
+      }
     };
-
     const res = await api(url, config);
     return res;
   } catch (error) {
     if (error.response) {
-      return error.response.data;
+      return error.response;
     } else {
       throw error;
     }
   }
 };
 
-export { addPromotion, getAllPromotions, getPromotionById, updatePromotion, deletePromotion, getPromotionCurrent, checkPromotion };
+// Lấy danh sách khuyến mãi hiện tại
+export const getCurrentPromotions = async () => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/storePromotion/current`;
+    const config = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      }
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Kiểm tra khuyến mãi theo ID
+export const checkPromotionById = async (promotionId) => {
+  try {
+    const idToken = await getIdToken();
+    const url = `/storePromotion/check/${promotionId}`;
+    const config = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      }
+    };
+    const res = await api(url, config);
+    return res;
+  } catch (error) {
+    if (error.response) {
+      return error.response;
+    } else {
+      throw error;
+    }
+  }
+};
