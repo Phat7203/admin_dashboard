@@ -8,7 +8,7 @@
     "@testing-library/user-event": "7.2.1",
     "@windmill/react-ui": "0.3.1",
     "axios": "^1.9.0",
-    "chart.js": "2.9.3",
+    "chart.js": "^2.9.4",
     "classnames": "2.2.6",
     "faker": "4.1.0",
     "firebase": "^11.8.0",
@@ -21,7 +21,6 @@
     "react-router-dom": "^5.3.4",
     "react-scripts": "3.4.1",
     "react-transition-group": "4.4.1",
-    "recharts": "^3.0.2",
     "socket": "^0.15.57",
     "socket.io-client": "^4.8.1"
   },
