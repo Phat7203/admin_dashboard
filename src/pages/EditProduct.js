@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useParams } from "react-router-dom";
-import Icon from "../components/Icon";
+import { Package } from "lucide-react";
 import PageTitle from "../components/Typography/PageTitle";
-import { HomeIcon, AddIcon, PublishIcon, StoreIcon } from "../icons";
 import {
   Card,
   CardBody,
@@ -15,7 +14,7 @@ import {
 import { getCategoriesByStore } from "../api/CategoryApi";
 import { getProductById, updateProduct } from "../api/ProductApi";
 import { useAuth } from "../context/AuthContext";
-import { uploadMultipleFiles } from "../utils/fileUpload";
+import { uploadMultipleFiles, uploadFile } from "../utils/fileUpload";
 
 const FormTitle = ({ children }) => {
   return (
@@ -27,7 +26,7 @@ const FormTitle = ({ children }) => {
 
 const EditProduct = () => {
   const { user } = useAuth();
-  const { id } = useParams(); // Lấy ID từ URL params
+  const { id } = useParams();
 
   // State for form data
   const [productData, setProductData] = useState({
@@ -66,7 +65,9 @@ const EditProduct = () => {
   const [loadingProduct, setLoadingProduct] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [newImages, setNewImages] = useState([]); // State riêng cho ảnh mới upload
+  const [newImages, setNewImages] = useState([]);
+  const [variantImageUploads, setVariantImageUploads] = useState({}); // State cho ảnh variant
+  const [variantUploadStatus, setVariantUploadStatus] = useState({}); // State để track upload status
 
   // Load product data khi component mount
   useEffect(() => {
@@ -76,10 +77,31 @@ const EditProduct = () => {
         const response = await getProductById({ id: id });
         if (response.status === 200 && response.data) {
           const product = response.data;
+
+          // Xử lý categoryId nếu là object với $oid
+          let categoryId = product.categoryId;
+          if (typeof categoryId === "object" && categoryId.$oid) {
+            categoryId = categoryId.$oid;
+          }
+
+          // Xử lý variants - đảm bảo có ID duy nhất
+          const processedVariants = (product.variants || []).map(
+            (variant, index) => ({
+              ...variant,
+              // Sử dụng index làm ID tạm nếu không có ID
+              id: variant._id || variant.id || `variant_${index}`,
+              price: variant.price || 0,
+              quantity: variant.quantity || 0,
+              sku: variant.sku || "",
+              image: variant.image || "",
+              attributes: variant.attributes || [],
+            })
+          );
+
           setProductData({
             productName: product.productName || "",
             basePrice: product.basePrice || 0,
-            categoryId: product.categoryId || "",
+            categoryId: categoryId,
             productImages: product.productImages || [],
             description: product.description || "",
             isOnSale: product.isOnSale || false,
@@ -91,13 +113,13 @@ const EditProduct = () => {
             status: product.status || "available",
             generalAttributes: product.generalAttributes || [],
             variantAttributes: product.variantAttributes || [],
-            variants: product.variants || [],
+            variants: processedVariants,
           });
         } else {
           throw new Error("Không thể tải thông tin sản phẩm");
         }
       } catch (error) {
-        console.error("Error fetching product data:", error);
+        console.error("Lỗi khi tải dữ liệu sản phẩm:", error);
         alert("Không thể tải thông tin sản phẩm: " + error.message);
       } finally {
         setLoadingProduct(false);
@@ -117,7 +139,7 @@ const EditProduct = () => {
         const response = await getCategoriesByStore({ storeId: user.storeId });
         setCategories(response.data || []);
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Lỗi khi tải danh mục:", error);
         alert("Không thể tải danh sách danh mục");
       } finally {
         setLoadingCategories(false);
@@ -137,7 +159,6 @@ const EditProduct = () => {
   // Hàm tạo tất cả combinations từ variant attributes
   const generateVariants = () => {
     if (productData.variantAttributes.length === 0) {
-      setProductData((prev) => ({ ...prev, variants: [] }));
       return;
     }
 
@@ -171,23 +192,24 @@ const EditProduct = () => {
           )
       );
 
-      // Tạo SKU tự động
-      const sku = `${productData.productName
-        .replace(/\s+/g, "-")
-        .toUpperCase()}-${combo
-        .map((attr) => attr.value.replace(/\s+/g, ""))
-        .join("-")}`;
+      if (existingVariant) {
+        // Giữ nguyên variant hiện có
+        return existingVariant;
+      } else {
+        // Tạo variant mới
+        const sku = `SKU-${combo
+          .map((attr) => attr.value.replace(/\s+/g, "").toUpperCase())
+          .join("-")}`;
 
-      return (
-        existingVariant || {
-          id: Date.now() + idx,
+        return {
+          id: `new_variant_${Date.now()}_${idx}`,
           attributes: combo,
           price: productData.basePrice || 0,
           quantity: 0,
           sku: sku,
           image: "",
-        }
-      );
+        };
+      }
     });
 
     setProductData((prev) => ({ ...prev, variants: newVariants }));
@@ -201,6 +223,85 @@ const EditProduct = () => {
         variant.id === variantId ? { ...variant, [field]: value } : variant
       ),
     }));
+  };
+
+  // State để track upload status cho từng variant
+  // Hàm upload ảnh cho variant ngay lập tức
+  const handleVariantImageUpload = async (variantId, file) => {
+    try {
+      // Set loading state cho variant này
+      setVariantUploadStatus((prev) => ({
+        ...prev,
+        [variantId]: { uploading: true, progress: 0 },
+      }));
+
+      setVariantUploadStatus((prev) => ({
+        ...prev,
+        [variantId]: { uploading: true, progress: 25 },
+      }));
+
+      const result = await uploadFile(file, "variants");
+
+      setVariantUploadStatus((prev) => ({
+        ...prev,
+        [variantId]: { uploading: true, progress: 75 },
+      }));
+
+      // Cập nhật ảnh cho variant trong productData
+      updateVariant(variantId, "image", result.url);
+
+      // Xóa file khỏi variantImageUploads
+      setVariantImageUploads((prev) => {
+        const newUploads = { ...prev };
+        delete newUploads[variantId];
+        return newUploads;
+      });
+
+      // Set thành công
+      setVariantUploadStatus((prev) => ({
+        ...prev,
+        [variantId]: { uploading: false, progress: 100, success: true },
+      }));
+
+      // Clear status sau 2 giây
+      setTimeout(() => {
+        setVariantUploadStatus((prev) => {
+          const newStatus = { ...prev };
+          delete newStatus[variantId];
+          return newStatus;
+        });
+      }, 2000);
+
+      alert("Đã tải ảnh lên thành công!");
+    } catch (error) {
+      console.error("Lỗi khi tải ảnh variant:", error);
+      alert("Không thể tải ảnh lên: " + error.message);
+
+      // Set lỗi
+      setVariantUploadStatus((prev) => ({
+        ...prev,
+        [variantId]: { uploading: false, progress: 0, error: true },
+      }));
+
+      // Clear error sau 3 giây
+      setTimeout(() => {
+        setVariantUploadStatus((prev) => {
+          const newStatus = { ...prev };
+          delete newStatus[variantId];
+          return newStatus;
+        });
+      }, 3000);
+    }
+  };
+
+  // Hàm xử lý khi chọn file ảnh cho variant
+  const handleVariantFileSelect = (variantId, file) => {
+    if (file) {
+      setVariantImageUploads((prev) => ({
+        ...prev,
+        [variantId]: file,
+      }));
+    }
   };
 
   // Hàm xóa variant attribute
@@ -246,6 +347,12 @@ const EditProduct = () => {
   const addVariantValue = () => {
     if (!variantValueInput.trim()) return;
 
+    // Kiểm tra trùng giá trị
+    if (variantAttribute.values.includes(variantValueInput.trim())) {
+      alert("Giá trị này đã tồn tại");
+      return;
+    }
+
     const newValues = [...variantAttribute.values, variantValueInput.trim()];
     setVariantAttribute({ ...variantAttribute, values: newValues });
     setVariantValueInput("");
@@ -267,7 +374,7 @@ const EditProduct = () => {
     setProductData({ ...productData, productImages: newImages });
   };
 
-  // Hàm handle submit
+  // Hàm handle submit - chỉ xử lý ảnh sản phẩm chính
   const handleSubmit = async () => {
     try {
       // Basic validation
@@ -286,45 +393,58 @@ const EditProduct = () => {
         return;
       }
 
+      // Kiểm tra xem có ảnh variant nào chưa upload không
+      const pendingVariantUploads = Object.keys(variantImageUploads);
+      if (pendingVariantUploads.length > 0) {
+        const confirmSubmit = window.confirm(
+          `Bạn có ${pendingVariantUploads.length} ảnh variant chưa được tải lên. Bạn có muốn tiếp tục không? (Các ảnh này sẽ không được lưu)`
+        );
+        if (!confirmSubmit) {
+          return;
+        }
+      }
+
       setIsSubmitting(true);
 
-      // Upload new images if any
+      // Chỉ upload ảnh sản phẩm chính
       let newImageUrls = [];
       if (newImages.length > 0) {
-        setUploadProgress(10);
+        setUploadProgress(20);
         newImageUrls = await uploadMultipleFiles(newImages);
-        setUploadProgress(50);
+        setUploadProgress(60);
       }
 
       // Combine existing images with new uploaded images
       const allImages = [...productData.productImages, ...newImageUrls];
+      setUploadProgress(80);
 
-      // Prepare data for API
+      // Prepare data for API - variants đã có ảnh được cập nhật từ upload riêng lẻ
       const finalProductData = {
         ...productData,
         storeId: user.storeId,
         productImages: allImages,
         variants: productData.variants.map((variant) => ({
           ...variant,
-          price: parseFloat(variant.price),
-          quantity: parseInt(variant.quantity),
+          price: parseFloat(variant.price) || 0,
+          quantity: parseInt(variant.quantity) || 0,
         })),
       };
 
       // Call API to update product
-      console.log("Updating product data:", finalProductData);
+      console.log("Đang cập nhật dữ liệu sản phẩm:", finalProductData);
       const response = await updateProduct(id, finalProductData);
       setUploadProgress(100);
 
       if (response.status === 200) {
         alert("Sản phẩm đã được cập nhật thành công!");
-        // Reset new images
+        // Reset new images và variant uploads
         setNewImages([]);
+        setVariantImageUploads({});
       } else {
         throw new Error(response.data?.message || "Có lỗi xảy ra");
       }
     } catch (error) {
-      console.error("Error updating product:", error);
+      console.error("Lỗi khi cập nhật sản phẩm:", error);
       alert(error.message || "Có lỗi xảy ra khi cập nhật sản phẩm");
     } finally {
       setIsSubmitting(false);
@@ -343,20 +463,41 @@ const EditProduct = () => {
 
   return (
     <div>
-      <PageTitle>Edit Product</PageTitle>
+      <PageTitle>Chỉnh sửa sản phẩm</PageTitle>
+
+      {/* Breadcrumb */}
+      <nav className="flex mb-6" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-3">
+          <li className="inline-flex items-center">
+            <NavLink
+              to="/app/products"
+              className="flex flex-row items-center text-gray-700 hover:text-purple-600"
+            >
+              <Package className="w-4 h-4 mr-2" />
+              Sản phẩm
+            </NavLink>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <span className="mx-2 text-gray-400">/</span>
+              <span className="text-gray-500">{productData.productName}</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
 
       <div className="w-full mt-8 grid gap-4 grid-col md:grid-cols-3">
         <Card className="row-span-2 md:col-span-2">
           <CardBody>
             {/* Existing Product Images */}
-            <FormTitle>Current Product Images</FormTitle>
+            <FormTitle>Hình ảnh sản phẩm hiện tại</FormTitle>
             {productData.productImages.length > 0 && (
               <div className="mb-4 grid grid-cols-3 gap-2">
                 {productData.productImages.map((image, index) => (
                   <div key={index} className="relative">
                     <img
                       src={image}
-                      alt={`Product ${index + 1}`}
+                      alt={`Sản phẩm ${index + 1}`}
                       className="w-full h-48 object-cover rounded border"
                     />
                     <button
@@ -371,10 +512,11 @@ const EditProduct = () => {
             )}
 
             {/* New Images Upload */}
-            <FormTitle>Add New Images</FormTitle>
+            <FormTitle>Thêm hình ảnh mới</FormTitle>
             <input
               type="file"
               multiple
+              accept="image/*"
               className="mb-4 text-gray-800 dark:text-gray-300"
               onChange={(e) => {
                 const files = Array.from(e.target.files);
@@ -382,11 +524,11 @@ const EditProduct = () => {
               }}
             />
 
-            <FormTitle>Product Name</FormTitle>
+            <FormTitle>Tên sản phẩm</FormTitle>
             <Label>
               <Input
                 className="mb-4"
-                placeholder="Type product name here"
+                placeholder="Nhập tên sản phẩm"
                 value={productData.productName}
                 onChange={(e) =>
                   setProductData({
@@ -397,23 +539,23 @@ const EditProduct = () => {
               />
             </Label>
 
-            <FormTitle>Base Price</FormTitle>
+            <FormTitle>Giá cơ bản</FormTitle>
             <Label>
               <Input
                 type="number"
                 className="mb-4"
-                placeholder="Enter base price"
+                placeholder="Nhập giá cơ bản"
                 value={productData.basePrice}
                 onChange={(e) =>
                   setProductData({
                     ...productData,
-                    basePrice: parseFloat(e.target.value),
+                    basePrice: parseFloat(e.target.value) || 0,
                   })
                 }
               />
             </Label>
 
-            <FormTitle>Product Category</FormTitle>
+            <FormTitle>Danh mục sản phẩm</FormTitle>
             <Label>
               <Select
                 className="mb-4"
@@ -424,9 +566,7 @@ const EditProduct = () => {
                 disabled={loadingCategories}
               >
                 <option value="">
-                  {loadingCategories
-                    ? "Loading categories..."
-                    : "Select a category"}
+                  {loadingCategories ? "Đang tải danh mục..." : "Chọn danh mục"}
                 </option>
                 {categories.map((category) => (
                   <option key={category._id} value={category._id}>
@@ -437,11 +577,11 @@ const EditProduct = () => {
             </Label>
 
             {/* General Attributes Section */}
-            <FormTitle>Technical Specifications</FormTitle>
+            <FormTitle>Thông số kỹ thuật</FormTitle>
             <div className="mb-4 p-4 border rounded">
               <div className="flex gap-4 mb-4">
                 <Input
-                  placeholder="Attribute Name (e.g. RAM)"
+                  placeholder="Tên thuộc tính (VD: Chất liệu)"
                   value={generalAttribute.name}
                   onChange={(e) =>
                     setGeneralAttribute({
@@ -451,7 +591,7 @@ const EditProduct = () => {
                   }
                 />
                 <Input
-                  placeholder="Value (e.g. 8GB)"
+                  placeholder="Giá trị (VD: Cotton)"
                   value={generalAttribute.value}
                   onChange={(e) =>
                     setGeneralAttribute({
@@ -478,7 +618,7 @@ const EditProduct = () => {
                     }
                   }}
                 >
-                  Add
+                  Thêm
                 </Button>
               </div>
               {/* Display added general attributes */}
@@ -503,20 +643,20 @@ const EditProduct = () => {
                       });
                     }}
                   >
-                    Remove
+                    Xóa
                   </Button>
                 </div>
               ))}
             </div>
 
             {/* Variant Attributes Section */}
-            <FormTitle>Product Variants</FormTitle>
+            <FormTitle>Biến thể sản phẩm</FormTitle>
             <div className="mb-4 p-4 border rounded">
               {/* Form thêm variant attribute mới */}
               <div className="border-b pb-4 mb-4">
                 <div className="flex gap-4 mb-4">
                   <Input
-                    placeholder="Variant Type (e.g. Color, Size)"
+                    placeholder="Loại biến thể (VD: Màu sắc, Kích thước)"
                     value={variantAttribute.name}
                     onChange={(e) =>
                       setVariantAttribute({
@@ -527,17 +667,18 @@ const EditProduct = () => {
                   />
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Add value"
+                      placeholder="Thêm giá trị"
                       value={variantValueInput}
                       onChange={(e) => setVariantValueInput(e.target.value)}
                       onKeyPress={(e) => {
                         if (e.key === "Enter") {
+                          e.preventDefault();
                           addVariantValue();
                         }
                       }}
                     />
                     <Button size="small" onClick={addVariantValue}>
-                      Add
+                      Thêm
                     </Button>
                   </div>
                 </div>
@@ -546,7 +687,7 @@ const EditProduct = () => {
                 {variantAttribute.values.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm mb-2">
-                      Values for {variantAttribute.name}:
+                      Giá trị cho {variantAttribute.name}:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {variantAttribute.values.map((value, idx) => (
@@ -575,7 +716,7 @@ const EditProduct = () => {
                     variantAttribute.values.length === 0
                   }
                 >
-                  Add Variant Type
+                  Thêm loại biến thể
                 </Button>
               </div>
 
@@ -593,7 +734,7 @@ const EditProduct = () => {
                       onClick={() => removeVariantAttribute(idx)}
                       className="text-red-500"
                     >
-                      Remove
+                      Xóa
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -614,7 +755,7 @@ const EditProduct = () => {
             {productData.variants.length > 0 && (
               <div className="mb-4">
                 <FormTitle>
-                  Product Variants ({productData.variants.length})
+                  Biến thể sản phẩm ({productData.variants.length})
                 </FormTitle>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {productData.variants.map((variant) => (
@@ -622,10 +763,12 @@ const EditProduct = () => {
                       key={variant.id}
                       className="p-4 border rounded bg-gray-50 dark:bg-gray-700"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                           <Label>
-                            <span className="text-sm font-medium">Variant</span>
+                            <span className="text-sm font-medium">
+                              Biến thể
+                            </span>
                             <div className="p-2 bg-white dark:bg-gray-600 rounded text-sm">
                               {variant.attributes
                                 .map((attr) => `${attr.name}: ${attr.value}`)
@@ -635,10 +778,10 @@ const EditProduct = () => {
                         </div>
                         <div>
                           <Label>
-                            <span className="text-sm font-medium">Price</span>
+                            <span className="text-sm font-medium">Giá</span>
                             <Input
                               type="number"
-                              value={variant.price}
+                              value={variant.price || 0}
                               onChange={(e) =>
                                 updateVariant(
                                   variant.id,
@@ -652,11 +795,11 @@ const EditProduct = () => {
                         <div>
                           <Label>
                             <span className="text-sm font-medium">
-                              Quantity
+                              Số lượng
                             </span>
                             <Input
                               type="number"
-                              value={variant.quantity}
+                              value={variant.quantity || 0}
                               onChange={(e) =>
                                 updateVariant(
                                   variant.id,
@@ -669,14 +812,132 @@ const EditProduct = () => {
                         </div>
                         <div>
                           <Label>
-                            <span className="text-sm font-medium">SKU</span>
+                            <span className="text-sm font-medium">Mã SKU</span>
                             <Input
-                              value={variant.sku}
+                              value={variant.sku || ""}
                               onChange={(e) =>
                                 updateVariant(variant.id, "sku", e.target.value)
                               }
-                              placeholder="Auto-generated"
+                              placeholder="Tự động tạo"
                             />
+                          </Label>
+                        </div>
+                        <div>
+                          <Label>
+                            <span className="text-sm font-medium">
+                              Hình ảnh
+                            </span>
+                            <div className="space-y-2">
+                              {variant.image && (
+                                <div className="relative">
+                                  <img
+                                    src={variant.image}
+                                    alt={`Biến thể ${variant.id}`}
+                                    className="w-20 h-20 object-cover rounded border"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      updateVariant(variant.id, "image", "")
+                                    }
+                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                    title="Xóa ảnh"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* File input với key và id riêng biệt */}
+                              <input
+                                key={`variant-image-${variant.id}`}
+                                id={`variant-image-${variant.id}`}
+                                type="file"
+                                accept="image/*"
+                                className="text-xs"
+                                onChange={(e) => {
+                                  const file = e.target.files[0];
+                                  if (file) {
+                                    handleVariantFileSelect(variant.id, file);
+                                  }
+                                  // Reset input value sau khi xử lý
+                                  e.target.value = "";
+                                }}
+                              />
+
+                              {/* Show selected file and upload controls */}
+                              {variantImageUploads[variant.id] && (
+                                <div className="space-y-2">
+                                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                                    Đã chọn:{" "}
+                                    {variantImageUploads[variant.id].name}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="small"
+                                      onClick={() =>
+                                        handleVariantImageUpload(
+                                          variant.id,
+                                          variantImageUploads[variant.id]
+                                        )
+                                      }
+                                      disabled={
+                                        variantUploadStatus[variant.id]
+                                          ?.uploading
+                                      }
+                                    >
+                                      {variantUploadStatus[variant.id]
+                                        ?.uploading
+                                        ? "Đang tải..."
+                                        : "Tải lên"}
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      layout="link"
+                                      onClick={() => {
+                                        setVariantImageUploads((prev) => {
+                                          const newUploads = { ...prev };
+                                          delete newUploads[variant.id];
+                                          return newUploads;
+                                        });
+                                      }}
+                                      disabled={
+                                        variantUploadStatus[variant.id]
+                                          ?.uploading
+                                      }
+                                    >
+                                      Hủy
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Upload progress for this variant */}
+                              {variantUploadStatus[variant.id]?.uploading && (
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${
+                                        variantUploadStatus[variant.id]
+                                          ?.progress || 0
+                                      }%`,
+                                    }}
+                                  ></div>
+                                </div>
+                              )}
+
+                              {/* Success/Error messages */}
+                              {variantUploadStatus[variant.id]?.success && (
+                                <div className="text-xs text-green-600">
+                                  ✓ Đã tải lên thành công
+                                </div>
+                              )}
+                              {variantUploadStatus[variant.id]?.error && (
+                                <div className="text-xs text-red-600">
+                                  ✗ Lỗi khi tải lên
+                                </div>
+                              )}
+                            </div>
                           </Label>
                         </div>
                       </div>
@@ -687,13 +948,13 @@ const EditProduct = () => {
             )}
 
             {/* Product Dimensions */}
-            <FormTitle>Product Dimensions</FormTitle>
+            <FormTitle>Kích thước sản phẩm</FormTitle>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <Label>
-                <span>Weight (g)</span>
+                <span>Trọng lượng (g)</span>
                 <Input
                   type="number"
-                  value={productData.weight}
+                  value={productData.weight || 0}
                   onChange={(e) =>
                     setProductData({
                       ...productData,
@@ -703,10 +964,10 @@ const EditProduct = () => {
                 />
               </Label>
               <Label>
-                <span>Height (cm)</span>
+                <span>Chiều cao (cm)</span>
                 <Input
                   type="number"
-                  value={productData.height}
+                  value={productData.height || 0}
                   onChange={(e) =>
                     setProductData({
                       ...productData,
@@ -716,10 +977,10 @@ const EditProduct = () => {
                 />
               </Label>
               <Label>
-                <span>Length (cm)</span>
+                <span>Chiều dài (cm)</span>
                 <Input
                   type="number"
-                  value={productData.length}
+                  value={productData.length || 0}
                   onChange={(e) =>
                     setProductData({
                       ...productData,
@@ -729,10 +990,10 @@ const EditProduct = () => {
                 />
               </Label>
               <Label>
-                <span>Width (cm)</span>
+                <span>Chiều rộng (cm)</span>
                 <Input
                   type="number"
-                  value={productData.width}
+                  value={productData.width || 0}
                   onChange={(e) =>
                     setProductData({
                       ...productData,
@@ -743,12 +1004,12 @@ const EditProduct = () => {
               </Label>
             </div>
 
-            <FormTitle>Description</FormTitle>
+            <FormTitle>Mô tả sản phẩm</FormTitle>
             <Label>
               <Textarea
                 className="mb-4"
                 rows="5"
-                placeholder="Enter product description"
+                placeholder="Nhập mô tả sản phẩm"
                 value={productData.description}
                 onChange={(e) =>
                   setProductData({
@@ -764,7 +1025,7 @@ const EditProduct = () => {
         {/* Right Side Card */}
         <Card>
           <CardBody>
-            <FormTitle>Product Status</FormTitle>
+            <FormTitle>Trạng thái sản phẩm</FormTitle>
             <Select
               className="mb-4"
               value={productData.status}
@@ -772,12 +1033,12 @@ const EditProduct = () => {
                 setProductData({ ...productData, status: e.target.value })
               }
             >
-              <option value="available">Available</option>
-              <option value="outofstock">Out of Stock</option>
-              <option value="onwait">On Wait</option>
+              <option value="available">Có sẵn</option>
+              <option value="outofstock">Ẩn</option>
+              <option value="onwait">Đang chờ</option>
             </Select>
 
-            <FormTitle>Sale Settings</FormTitle>
+            <FormTitle>Cài đặt khuyến mãi</FormTitle>
             <Label className="mb-4">
               <Input
                 type="checkbox"
@@ -786,16 +1047,16 @@ const EditProduct = () => {
                   setProductData({ ...productData, isOnSale: e.target.checked })
                 }
               />
-              <span className="ml-2">On Sale</span>
+              <span className="ml-2">Đang khuyến mãi</span>
             </Label>
 
             {productData.isOnSale && (
               <Label>
-                <span>Discount Price</span>
+                <span>Giá khuyến mãi</span>
                 <Input
                   type="number"
                   className="mt-1"
-                  value={productData.discountPrice}
+                  value={productData.discountPrice || 0}
                   onChange={(e) =>
                     setProductData({
                       ...productData,
@@ -808,15 +1069,18 @@ const EditProduct = () => {
 
             {/* Summary */}
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded">
-              <h3 className="font-semibold mb-2">Summary</h3>
+              <h3 className="font-semibold mb-2">Tóm tắt</h3>
               <p className="text-sm mb-1">
-                General Attributes: {productData.generalAttributes.length}
+                Thuộc tính chung: {productData.generalAttributes.length}
               </p>
               <p className="text-sm mb-1">
-                Variant Types: {productData.variantAttributes.length}
+                Loại biến thể: {productData.variantAttributes.length}
               </p>
               <p className="text-sm mb-1">
-                Product Variants: {productData.variants.length}
+                Biến thể sản phẩm: {productData.variants.length}
+              </p>
+              <p className="text-sm mb-1">
+                Ảnh sản phẩm: {productData.productImages.length}
               </p>
             </div>
 

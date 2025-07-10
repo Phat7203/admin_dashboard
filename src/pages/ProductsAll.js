@@ -36,6 +36,7 @@ import { genRating } from "../utils/genarateRating";
 
 const ProductsAll = () => {
   const [view, setView] = useState("grid");
+  const [activeTab, setActiveTab] = useState("all");
 
   // Table and grid data handlling
   const [page, setPage] = useState(1);
@@ -43,7 +44,21 @@ const ProductsAll = () => {
 
   // pagination setup
   const [resultsPerPage, setResultsPerPage] = useState(10);
-  const totalResults = response.length;
+  
+  // Filter data based on active tab
+  const getFilteredData = () => {
+    switch (activeTab) {
+      case "declined":
+        return response.filter(product => product.status === "declined");
+      case "hidden":
+        return response.filter(product => product.status === "hidden");
+      default:
+        return response;
+    }
+  };
+
+  const filteredData = getFilteredData();
+  const totalResults = filteredData.length;
 
   // pagination change control
   function onPageChange(p) {
@@ -53,8 +68,13 @@ const ProductsAll = () => {
   // on page change, load new sliced data
   // here you would make another server request for new data
   useEffect(() => {
-    setData(response.slice((page - 1) * resultsPerPage, page * resultsPerPage));
-  }, [page, resultsPerPage]);
+    setData(filteredData.slice((page - 1) * resultsPerPage, page * resultsPerPage));
+  }, [page, resultsPerPage, activeTab]);
+
+  // Reset page when tab changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
 
   // Delete action model
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,9 +100,62 @@ const ProductsAll = () => {
     }
   };
 
+  // Get badge type based on status
+  const getStatusBadge = (product) => {
+    if (product.status === "declined") {
+      return <Badge type="danger">Declined</Badge>;
+    }
+    if (product.status === "hidden") {
+      return <Badge type="warning">Hidden</Badge>;
+    }
+    return (
+      <Badge type={product.qty > 0 ? "success" : "danger"}>
+        {product.qty > 0 ? "In Stock" : "Out of Stock"}
+      </Badge>
+    );
+  };
+
   return (
     <div>
       <PageTitle>All Products</PageTitle>
+
+      {/* Tabs */}
+      <Card className="mt-5 mb-5 shadow-md">
+        <CardBody>
+          <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === "all"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
+            >
+              All Products ({response.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("declined")}
+              className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === "declined"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
+            >
+              Declined ({response.filter(p => p.status === "declined").length})
+            </button>
+            <button
+              onClick={() => setActiveTab("hidden")}
+              className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === "hidden"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              }`}
+            >
+              Hidden ({response.filter(p => p.status === "hidden").length})
+            </button>
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Sort */}
       <Card className="mt-5 mb-5 shadow-md">
@@ -90,7 +163,9 @@ const ProductsAll = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                All Products
+                {activeTab === "all" ? "All Products" : 
+                 activeTab === "declined" ? "Declined Products" : 
+                 "Hidden Products"}
               </p>
 
               <Label className="mx-3">
@@ -189,6 +264,7 @@ const ProductsAll = () => {
                   <TableCell>Rating</TableCell>
                   <TableCell>QTY</TableCell>
                   <TableCell>Price</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell>Action</TableCell>
                 </tr>
               </TableHeader>
@@ -217,6 +293,9 @@ const ProductsAll = () => {
                     </TableCell>
                     <TableCell className="text-sm">{product.qty}</TableCell>
                     <TableCell className="text-sm">{product.price}</TableCell>
+                    <TableCell>
+                      {getStatusBadge(product)}
+                    </TableCell>
                     <TableCell>
                       <div className="flex">
                         <Link to={`/app/product/${product.id}`}>
@@ -271,14 +350,7 @@ const ProductsAll = () => {
                       <p className="font-semibold truncate  text-gray-600 dark:text-gray-300">
                         {product.name}
                       </p>
-                      <Badge
-                        type={product.qty > 0 ? "success" : "danger"}
-                        className="whitespace-nowrap"
-                      >
-                        <p className="break-normal">
-                          {product.qty > 0 ? `In Stock` : "Out of Stock"}
-                        </p>
-                      </Badge>
+                      {getStatusBadge(product)}
                     </div>
 
                     <p className="mb-2 text-purple-500 font-bold text-lg">
