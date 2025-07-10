@@ -436,12 +436,6 @@ const Orders = () => {
                             <Eye className="w-5 h-5" />
                           </button>
                         </Link>
-                        <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                          <Printer className="w-5 h-5" />
-                        </button>
                       </div>
                     </div>
                   </div>

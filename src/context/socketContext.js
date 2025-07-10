@@ -31,7 +31,7 @@ export const SocketProvider = ({ children }) => {
 
   const initializeSocket = () => {
     if (!socket.current) {
-      const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://10.0.175.33:8000';
+      const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://172.30.127.14:8000';
       
       console.log('🔌 Connecting to socket server:', socketUrl);
       

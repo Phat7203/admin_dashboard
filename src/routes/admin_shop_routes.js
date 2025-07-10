@@ -15,6 +15,7 @@ const Profile = lazy(() => import("../pages/Profile"));
 const OrderDetailPage = lazy(() => import("../pages/OrderDetail"));
 const ManageStaff = lazy(() => import("../pages/ManageStaff"));
 const ManagePermission = lazy(() => import("../pages/ManagePermission"));
+const StoreManagement = lazy(() => import("../pages/ManageStore"));
 const adminShopRoutes = [
   {
     path: "/dashboard-shop",
@@ -94,7 +95,7 @@ const adminShopRoutes = [
     requiredPermissions: ["profile_view"],
   },
   {
-    path: "/manage-store",
+    path: "/manage-profile",
     component: Profile,
     name: "Manage Store",
     icon: "HomeIcon",
@@ -113,6 +114,12 @@ const adminShopRoutes = [
     name: "Manage Permissions",
     icon: "UserIcon",
     requiredPermissions: ["manage_permissions"],
+  },
+  {
+    path: "/manage-store",
+    component: StoreManagement,
+    name: "Manage Store",
+    requiredPermissions: ["manage_store"],
   },
 ];
 

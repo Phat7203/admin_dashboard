@@ -220,9 +220,7 @@ const Category = () => {
   };
 
   const getSubCategoryName = (subCategoryId) => {
-    const subCat = subCategories.find(
-      (sub) => sub._id === subCategoryId._id
-    );
+    const subCat = subCategories.find((sub) => sub._id === subCategoryId._id);
     return subCat ? subCat.name : "Chưa phân loại";
   };
 
@@ -284,7 +282,7 @@ const Category = () => {
       )}
 
       <PageTitle>Quản lý doanh mục</PageTitle>
-      
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -372,7 +370,7 @@ const Category = () => {
                   <h3 className="text-lg font-semibold text-gray-900 truncate">
                     {category.name}
                   </h3>
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-2">
+                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-2 max-w-[120px] truncate inline-block">
                     {getSubCategoryName(category.subCategoryId)}
                   </span>
                 </div>
