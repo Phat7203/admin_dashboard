@@ -171,7 +171,7 @@ function EnhancedRegistration() {
 
   useEffect(() => {
     const fetchCoordinates = async () => {
-      const { address, provinceName, districtName, wardName } = storeData;
+      const {address, provinceName, districtName, wardName } = storeData;
 
       if (address && provinceName && districtName && wardName) {
         const fullAddress = `${address}, ${wardName}, ${districtName}, ${provinceName}, Vietnam`;
@@ -205,10 +205,10 @@ function EnhancedRegistration() {
     const timeoutId = setTimeout(fetchCoordinates, 500);
     return () => clearTimeout(timeoutId);
   }, [
-    storeData.address,
     storeData.provinceName,
     storeData.districtName,
     storeData.wardName,
+    storeData.address,
   ]);
 
   const safeSetState = (stateSetter, value) => {
@@ -549,16 +549,16 @@ function EnhancedRegistration() {
   };
 
   const getCordinate = async () => {
-    const { provinceName, districtName, wardName, address } = storeData;
+    const { address, provinceName, districtName, wardName } = storeData;
     console.log(
       "Searching coordinates for:",
+      address,
       provinceName,
       districtName,
       wardName,
-      address
     );
 
-    if (provinceName && districtName && wardName && address) {
+    if (provinceName && districtName && wardName) {
       const fullAddress = `${address}, ${wardName}, ${districtName}, ${provinceName}, Vietnam`;
       const coordinates = await searchAddressOSM(fullAddress);
       if (coordinates) {

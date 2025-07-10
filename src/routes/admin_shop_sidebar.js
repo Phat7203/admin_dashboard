@@ -63,5 +63,11 @@ const adminShopSidebarRoutes = [
     name: "Đơn hàng",
     requiredPermissions: ["manage_order"],
   },
+   {
+    path: "/app/manage-store",
+    icon: "MenuIcon",
+    name: "Quản lý cửa hàng",
+    requiredPermissions: ["manage_store"],
+  },
 ];
 export default adminShopSidebarRoutes;

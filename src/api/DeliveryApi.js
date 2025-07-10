@@ -113,13 +113,26 @@ const confirmGHNOrder = async (orderId) => {
 };
 
 const searchAddressOSM = async (address) => {
-  const response = await fetch(
-    `/api/delivery/search-address?q=${encodeURIComponent(address)}`
-  );
-  const data = await response.json();
-  return data.length > 0
-    ? { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) }
+  try{
+    const url = `delivery/search-address?q=${encodeURIComponent(address)}`;
+    const config = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    const res = await api(url, config);
+    return res.data.length > 0
+    ? { lat: parseFloat(res.data[0].lat), lon: parseFloat(res.data[0].lon) }
     : null;
+  }
+  catch(error){
+     if (error.response) {
+      return error.response.data;
+    } else {
+      throw error;
+    }
+  }
 };
 
 export {
