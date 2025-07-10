@@ -50,7 +50,7 @@ const Products = () => {
   // Filter states
   const [sortBy, setSortBy] = useState(""); // "bestselling", "newest", ""
   const [filterCategory, setFilterCategory] = useState(""); // categoryId hoặc ""
-  const [activeTab, setActiveTab] = useState("all"); // "all", "available", "outofstock", "onwait"
+  const [activeTab, setActiveTab] = useState("all"); // "all", "available", "outofstock", "onwait", "declined", "hidden"
 
   // pagination setup
   const [resultsPerPage, setResultsPerPage] = useState(10);
@@ -227,6 +227,8 @@ const Products = () => {
       available: allProducts.filter(p => p.status === 'available').length,
       outofstock: allProducts.filter(p => p.status === 'outofstock').length,
       onwait: allProducts.filter(p => p.status === 'onwait').length,
+      declined: allProducts.filter(p => p.status === 'declined').length,
+      hidden: allProducts.filter(p => p.status === 'hidden').length,
     };
     return counts;
   };
@@ -242,8 +244,32 @@ const Products = () => {
         return { text: 'Out of Stock', type: 'danger' };
       case 'onwait':
         return { text: 'Pending', type: 'warning' };
+      case 'declined':
+        return { text: 'Declined', type: 'danger' };
+      case 'hidden':
+        return { text: 'Hidden', type: 'neutral' };
       default:
         return { text: status, type: 'neutral' };
+    }
+  };
+
+  // Get tab display name
+  const getTabDisplayName = (tab) => {
+    switch (tab) {
+      case 'all':
+        return 'Tất cả sản phẩm';
+      case 'available':
+        return 'Sản phẩm có sẵn';
+      case 'outofstock':
+        return 'Sản phẩm hết hàng';
+      case 'onwait':
+        return 'Sản phẩm chờ duyệt';
+      case 'declined':
+        return 'Sản phẩm bị từ chối';
+      case 'hidden':
+        return 'Sản phẩm bị ẩn';
+      default:
+        return 'Sản phẩm';
     }
   };
 
@@ -314,6 +340,36 @@ const Products = () => {
                 </span>
               </div>
             </button>
+            <button
+              className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "declined"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+              onClick={() => handleTabChange("declined")}
+            >
+              <div className="flex items-center gap-2">
+                <span>Bị từ chối</span>
+                <span className="bg-red-200 dark:bg-red-600 text-red-700 dark:text-red-300 px-2 py-1 rounded-full text-xs">
+                  {tabCounts.declined}
+                </span>
+              </div>
+            </button>
+            <button
+              className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "hidden"
+                  ? "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+              onClick={() => handleTabChange("hidden")}
+            >
+              <div className="flex items-center gap-2">
+                <span>Bị ẩn</span>
+                <span className="bg-gray-400 dark:bg-gray-500 text-white px-2 py-1 rounded-full text-xs">
+                  {tabCounts.hidden}
+                </span>
+              </div>
+            </button>
           </div>
         </CardBody>
       </Card>
@@ -324,10 +380,7 @@ const Products = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center flex-wrap gap-3">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {activeTab === "all" ? "Tất cả sản phẩm" : 
-                 activeTab === "available" ? "Sản phẩm có sẵn" :
-                 activeTab === "outofstock" ? "sản phẩm hết hàng" :
-                 "Sản phẩm chờ duyệt"} ({totalResults} kết quả)
+                {getTabDisplayName(activeTab)} ({totalResults} kết quả)
               </p>
 
               {/* Sort Dropdown */}

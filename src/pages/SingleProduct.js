@@ -2,7 +2,15 @@ import React, { useEffect, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import Icon from "../components/Icon";
 import PageTitle from "../components/Typography/PageTitle";
-import { Star, Package, Info, MessageSquare, Eye, Calendar, User } from "lucide-react";
+import {
+  Star,
+  Package,
+  Info,
+  MessageSquare,
+  Eye,
+  Calendar,
+  User,
+} from "lucide-react";
 import { Card, CardBody, Badge, Button, Avatar } from "@windmill/react-ui";
 import { getProductById } from "../api/ProductApi";
 import { getReviewsByProductId } from "../api/ReviewApi";
@@ -56,7 +64,7 @@ const SingleProduct = () => {
         console.error("Error fetching reviews:", error);
       }
     };
-    
+
     if (id) {
       fetchReviews();
     }
@@ -64,19 +72,19 @@ const SingleProduct = () => {
 
   // Helper functions
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(date).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -86,7 +94,7 @@ const SingleProduct = () => {
       outofstock: { type: "danger", text: "Hết hàng" },
       onwait: { type: "warning", text: "Chờ duyệt" },
       declined: { type: "danger", text: "Từ chối" },
-      hiden: { type: "neutral", text: "Ẩn" }
+      hiden: { type: "neutral", text: "Ẩn" },
     };
     return statusConfig[status] || { type: "neutral", text: status };
   };
@@ -96,7 +104,7 @@ const SingleProduct = () => {
       <Star
         key={index}
         className={`w-4 h-4 ${
-          index < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+          index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
         }`}
       />
     ));
@@ -135,12 +143,15 @@ const SingleProduct = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <PageTitle>Chi tiết Sản phẩm</PageTitle>
-      
+
       {/* Breadcrumb */}
       <nav className="flex mb-6" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
           <li className="inline-flex items-center">
-            <NavLink to="/app/products" className="flex flex-row items-center text-gray-700 hover:text-purple-600">
+            <NavLink
+              to="/app/products"
+              className="flex flex-row items-center text-gray-700 hover:text-purple-600"
+            >
               <Package className="w-4 h-4 mr-2" />
               Sản phẩm
             </NavLink>
@@ -161,8 +172,11 @@ const SingleProduct = () => {
             {/* Product Images */}
             <div>
               <div className="mb-4">
-                <img 
-                  src={product.productImages[selectedImageIndex] || product.productImages[0]} 
+                <img
+                  src={
+                    product.productImages[selectedImageIndex] ||
+                    product.productImages[0]
+                  }
                   alt={product.productName}
                   className="w-full h-96 object-cover rounded-lg shadow-md"
                 />
@@ -175,7 +189,9 @@ const SingleProduct = () => {
                       src={image}
                       alt={`${product.productName} ${index + 1}`}
                       className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 ${
-                        selectedImageIndex === index ? 'border-purple-500' : 'border-gray-200'
+                        selectedImageIndex === index
+                          ? "border-purple-500"
+                          : "border-gray-200"
                       }`}
                       onClick={() => setSelectedImageIndex(index)}
                     />
@@ -208,7 +224,9 @@ const SingleProduct = () => {
                   )}
                 </div>
                 {product.isOnSale && (
-                  <Badge type="success" className="mt-2">Đang khuyến mãi</Badge>
+                  <Badge type="success" className="mt-2">
+                    Đang khuyến mãi
+                  </Badge>
                 )}
               </div>
 
@@ -216,19 +234,27 @@ const SingleProduct = () => {
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex">{renderStars(product.rating)}</div>
-                  <span className="text-lg font-semibold">{product.rating}/5</span>
-                  <span className="text-gray-600">({product.reviewCount} đánh giá)</span>
+                  <span className="text-lg font-semibold">
+                    {product.rating}/5
+                  </span>
+                  <span className="text-gray-600">
+                    ({product.reviewCount} đánh giá)
+                  </span>
                 </div>
               </div>
 
               {/* Statistics */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-800">{product.soldQuantity}</div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    {product.soldQuantity}
+                  </div>
                   <div className="text-sm text-gray-600">Đã bán</div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-800">{product.viewCount}</div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    {product.viewCount}
+                  </div>
                   <div className="text-sm text-gray-600">Lượt xem</div>
                 </div>
               </div>
@@ -244,19 +270,33 @@ const SingleProduct = () => {
               {/* Dimensions */}
               {(product.weight > 0 || product.height > 0) && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">Thông số kỹ thuật</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Thông số kỹ thuật
+                  </h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {product.weight > 0 && (
-                      <div><span className="font-medium">Trọng lượng:</span> {product.weight}g</div>
+                      <div>
+                        <span className="font-medium">Trọng lượng:</span>{" "}
+                        {product.weight}g
+                      </div>
                     )}
                     {product.height > 0 && (
-                      <div><span className="font-medium">Chiều cao:</span> {product.height}cm</div>
+                      <div>
+                        <span className="font-medium">Chiều cao:</span>{" "}
+                        {product.height}cm
+                      </div>
                     )}
                     {product.length > 0 && (
-                      <div><span className="font-medium">Chiều dài:</span> {product.length}cm</div>
+                      <div>
+                        <span className="font-medium">Chiều dài:</span>{" "}
+                        {product.length}cm
+                      </div>
                     )}
                     {product.width > 0 && (
-                      <div><span className="font-medium">Chiều rộng:</span> {product.width}cm</div>
+                      <div>
+                        <span className="font-medium">Chiều rộng:</span>{" "}
+                        {product.width}cm
+                      </div>
                     )}
                   </div>
                 </div>
@@ -273,8 +313,8 @@ const SingleProduct = () => {
           <div className="flex border-b border-gray-200 mb-6">
             <button
               className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                tabView === "overview" 
-                  ? "border-purple-500 text-purple-600" 
+                tabView === "overview"
+                  ? "border-purple-500 text-purple-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
               onClick={() => handleTabView("overview")}
@@ -284,8 +324,8 @@ const SingleProduct = () => {
             </button>
             <button
               className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                tabView === "attributes" 
-                  ? "border-purple-500 text-purple-600" 
+                tabView === "attributes"
+                  ? "border-purple-500 text-purple-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
               onClick={() => handleTabView("attributes")}
@@ -295,8 +335,8 @@ const SingleProduct = () => {
             </button>
             <button
               className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                tabView === "reviews" 
-                  ? "border-purple-500 text-purple-600" 
+                tabView === "reviews"
+                  ? "border-purple-500 text-purple-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
               onClick={() => handleTabView("reviews")}
@@ -311,26 +351,57 @@ const SingleProduct = () => {
             {tabView === "overview" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xl font-semibold mb-4">Thông tin chi tiết</h3>
+                  <h3 className="text-xl font-semibold mb-4">
+                    Thông tin chi tiết
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h4 className="font-medium mb-2">Thông tin cơ bản</h4>
                       <div className="space-y-2 text-sm">
-                        <div><span className="font-medium">ID:</span> {product._id}</div>
-                        <div><span className="font-medium">Tên sản phẩm:</span> {product.productName}</div>
-                        <div><span className="font-medium">Giá gốc:</span> {formatPrice(product.basePrice)}</div>
-                        <div><span className="font-medium">Trạng thái:</span> {getStatusBadge(product.status).text}</div>
-                        <div><span className="font-medium">Ngày tạo:</span> {formatDate(product.createdAt)}</div>
-                        <div><span className="font-medium">Cập nhật:</span> {formatDate(product.updatedAt)}</div>
+                        <div>
+                          <span className="font-medium">ID:</span> {product._id}
+                        </div>
+                        <div>
+                          <span className="font-medium">Tên sản phẩm:</span>{" "}
+                          {product.productName}
+                        </div>
+                        <div>
+                          <span className="font-medium">Giá gốc:</span>{" "}
+                          {formatPrice(product.basePrice)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Trạng thái:</span>{" "}
+                          {getStatusBadge(product.status).text}
+                        </div>
+                        <div>
+                          <span className="font-medium">Ngày tạo:</span>{" "}
+                          {formatDate(product.createdAt)}
+                        </div>
+                        <div>
+                          <span className="font-medium">Cập nhật:</span>{" "}
+                          {formatDate(product.updatedAt)}
+                        </div>
                       </div>
                     </div>
                     <div>
                       <h4 className="font-medium mb-2">Thống kê</h4>
                       <div className="space-y-2 text-sm">
-                        <div><span className="font-medium">Đánh giá:</span> {product.rating}/5 ({product.reviewCount} lượt)</div>
-                        <div><span className="font-medium">Đã bán:</span> {product.soldQuantity}</div>
-                        <div><span className="font-medium">Lượt xem:</span> {product.viewCount}</div>
-                        <div><span className="font-medium">Yêu thích:</span> {product.wishlistCount}</div>
+                        <div>
+                          <span className="font-medium">Đánh giá:</span>{" "}
+                          {product.rating}/5 ({product.reviewCount} lượt)
+                        </div>
+                        <div>
+                          <span className="font-medium">Đã bán:</span>{" "}
+                          {product.soldQuantity}
+                        </div>
+                        <div>
+                          <span className="font-medium">Lượt xem:</span>{" "}
+                          {product.viewCount}
+                        </div>
+                        <div>
+                          <span className="font-medium">Yêu thích:</span>{" "}
+                          {product.wishlistCount}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -349,54 +420,75 @@ const SingleProduct = () => {
             {tabView === "attributes" && (
               <div className="space-y-6">
                 {/* General Attributes */}
-                {product.generalAttributes && product.generalAttributes.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4">Thuộc tính kỹ thuật</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {product.generalAttributes.map((attr, index) => (
-                        <div key={index} className="flex justify-between py-2 border-b border-gray-200">
-                          <span className="font-medium">{attr.name}:</span>
-                          <span className="text-gray-700">{attr.value}</span>
-                        </div>
-                      ))}
+                {product.generalAttributes &&
+                  product.generalAttributes.length > 0 && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4">
+                        Thuộc tính kỹ thuật
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {product.generalAttributes.map((attr, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between py-2 border-b border-gray-200"
+                          >
+                            <span className="font-medium">{attr.name}:</span>
+                            <span className="text-gray-700">{attr.value}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Variant Attributes */}
-                {product.variantAttributes && product.variantAttributes.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4">Thuộc tính phân loại</h3>
-                    <div className="space-y-4">
-                      {product.variantAttributes.map((attr, index) => (
-                        <div key={index}>
-                          <h4 className="font-medium mb-2">{attr.name}:</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {attr.values.map((value, valueIndex) => (
-                              <Badge key={valueIndex} type="neutral">
-                                {value}
-                              </Badge>
-                            ))}
+                {product.variantAttributes &&
+                  product.variantAttributes.length > 0 && (
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4">
+                        Thuộc tính phân loại
+                      </h3>
+                      <div className="space-y-4">
+                        {product.variantAttributes.map((attr, index) => (
+                          <div key={index}>
+                            <h4 className="font-medium mb-2">{attr.name}:</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {attr.values.map((value, valueIndex) => (
+                                <Badge key={valueIndex} type="neutral">
+                                  {value}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Variants */}
                 {product.variants && product.variants.length > 0 && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-4">Biến thể sản phẩm</h3>
+                    <h3 className="text-xl font-semibold mb-4">
+                      Biến thể sản phẩm
+                    </h3>
                     <div className="overflow-x-auto">
                       <table className="min-w-full bg-white border border-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Thuộc tính</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Giá</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Số lượng</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Hình ảnh</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              SKU
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              Thuộc tính
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              Giá
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              Số lượng
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              Hình ảnh
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -406,7 +498,9 @@ const SingleProduct = () => {
                                 {variant.sku || `VAR-${index + 1}`}
                               </td>
                               <td className="px-4 py-2 text-sm text-gray-700">
-                                {variant.attributes.map(attr => `${attr.name}: ${attr.value}`).join(', ')}
+                                {variant.attributes
+                                  .map((attr) => `${attr.name}: ${attr.value}`)
+                                  .join(", ")}
                               </td>
                               <td className="px-4 py-2 text-sm text-purple-600 font-medium">
                                 {formatPrice(variant.price)}
@@ -416,9 +510,9 @@ const SingleProduct = () => {
                               </td>
                               <td className="px-4 py-2">
                                 {variant.image && (
-                                  <img 
-                                    src={variant.image} 
-                                    alt="Variant" 
+                                  <img
+                                    src={variant.image}
+                                    alt="Variant"
                                     className="w-12 h-12 object-cover rounded"
                                   />
                                 )}
@@ -449,23 +543,30 @@ const SingleProduct = () => {
                         {product.reviewCount} đánh giá
                       </div>
                     </div>
-                    
+
                     <div className="md:col-span-2">
                       <h4 className="font-medium mb-3">Phân bố đánh giá</h4>
-                      {[5, 4, 3, 2, 1].map(star => {
-                        const count = reviews.filter(r => r.rating === star).length;
-                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                      {[5, 4, 3, 2, 1].map((star) => {
+                        const count = reviews.filter(
+                          (r) => r.rating === star
+                        ).length;
+                        const percentage =
+                          reviews.length > 0
+                            ? (count / reviews.length) * 100
+                            : 0;
                         return (
                           <div key={star} className="flex items-center mb-2">
                             <span className="text-sm w-8">{star}</span>
                             <Star className="w-4 h-4 text-yellow-400 mr-2" />
                             <div className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
-                              <div 
-                                className="bg-yellow-400 h-2 rounded-full" 
+                              <div
+                                className="bg-yellow-400 h-2 rounded-full"
                                 style={{ width: `${percentage}%` }}
                               ></div>
                             </div>
-                            <span className="text-sm text-gray-600 w-12">{count}</span>
+                            <span className="text-sm text-gray-600 w-12">
+                              {count}
+                            </span>
                           </div>
                         );
                       })}
@@ -478,11 +579,14 @@ const SingleProduct = () => {
                   <h3 className="text-xl font-semibold mb-4">
                     Đánh giá từ khách hàng ({reviews.length})
                   </h3>
-                  
+
                   {reviews.length > 0 ? (
                     <div className="space-y-6">
                       {reviews.map((review, index) => (
-                        <div key={review._id || index} className="border-b border-gray-200 pb-6">
+                        <div
+                          key={review._id || index}
+                          className="border-b border-gray-200 pb-6"
+                        >
                           <div className="flex items-start space-x-4">
                             <Avatar
                               src={review.userId?.avatar}
@@ -493,7 +597,9 @@ const SingleProduct = () => {
                               <div className="flex items-center justify-between mb-2">
                                 <div>
                                   <h4 className="font-medium text-gray-900">
-                                    {review.userId.fullName || review.userId || 'Người dùng ẩn danh'}
+                                    {review.userId.fullName ||
+                                      review.userId ||
+                                      "Người dùng ẩn danh"}
                                   </h4>
                                   <div className="flex items-center mt-1">
                                     {renderStars(review.rating)}
@@ -507,21 +613,24 @@ const SingleProduct = () => {
                                   {formatDate(review.reviewDate)}
                                 </div>
                               </div>
-                              
+
                               <p className="text-gray-700 mb-3">
                                 {review.content}
                               </p>
 
                               {/* Variant info */}
-                              {review.variant?.attributes && review.variant.attributes.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                  {review.variant.attributes.map((attr, i) => (
-                                    <Badge key={i} type="neutral">
-                                      {attr.name}: {attr.value}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
+                              {review.variant?.attributes &&
+                                review.variant.attributes.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mb-3">
+                                    {review.variant.attributes.map(
+                                      (attr, i) => (
+                                        <Badge key={i} type="neutral">
+                                          {attr.name}: {attr.value}
+                                        </Badge>
+                                      )
+                                    )}
+                                  </div>
+                                )}
 
                               {/* Review images */}
                               {review.images && review.images.length > 0 && (
@@ -544,7 +653,9 @@ const SingleProduct = () => {
                   ) : (
                     <div className="text-center py-12">
                       <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">Chưa có đánh giá nào cho sản phẩm này</p>
+                      <p className="text-gray-500">
+                        Chưa có đánh giá nào cho sản phẩm này
+                      </p>
                     </div>
                   )}
                 </div>
